@@ -17,7 +17,8 @@ The executable matrix and packaged evidence are checked for drift on every CI ru
 
 Profile compatibility pins also capture the required Core, Semantics, Query, Object Common, and
 Streaming public package versions. These are contract evidence, not runtime dependencies of
-`meridian-storage-constructs`. Consumer code therefore does not load Adapter modules or Kafka.
+`@zephytiju/meridian-storage-constructs`. Consumer code therefore does not load Adapter modules or
+Kafka.
 
 Each profile records a `profileFingerprint` and the released operation-statement fingerprints.
 Those values make IaC compatibility drift visible. They are deliberately distinct from a
