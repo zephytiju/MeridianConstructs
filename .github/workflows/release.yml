@@ -80,9 +80,10 @@ jobs:
         with:
           node-version: "24.14.0"
           registry-url: https://registry.npmjs.org
-      - name: Publish with npm trusted publishing and provenance
+      - name: Publish or verify exact npm release
         env:
           PACKAGE_NAME: "@zephytiju/meridian-storage-constructs"
+          REGISTRY_VERSION_URL: https://registry.npmjs.org/%40zephytiju%2Fmeridian-storage-constructs
         run: |
           set -euo pipefail
           mapfile -t package_tarballs < <(find release -maxdepth 1 -type f -name '*.tgz' -print)
@@ -90,17 +91,29 @@ jobs:
           package_tarball="${package_tarballs[0]}"
           package_version="${GITHUB_REF_NAME#v}"
           local_integrity="sha512-$(openssl dgst -sha512 -binary "${package_tarball}" | openssl base64 -A)"
+          version_url="${REGISTRY_VERSION_URL}/${package_version}"
 
-          if registry_integrity="$(npm view "${PACKAGE_NAME}@${package_version}" dist.integrity --json 2>/dev/null)"; then
-            registry_integrity="${registry_integrity%\"}"
-            registry_integrity="${registry_integrity#\"}"
+          if registry_metadata="$(curl --fail --silent "${version_url}?cache=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-before")"; then
+            registry_integrity="$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).dist.integrity)' "${registry_metadata}")"
             test "${registry_integrity}" = "${local_integrity}"
             echo "${PACKAGE_NAME}@${package_version} is already public with matching integrity"
           else
             npm publish "${package_tarball}" --access public --provenance
           fi
-      - name: Verify public registry receipt
-        run: npm view "@zephytiju/meridian-storage-constructs@${GITHUB_REF_NAME#v}" version --json
+
+          for attempt in {1..12}; do
+            if registry_metadata="$(curl --fail --silent "${version_url}?cache=${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${attempt}")"; then
+              registry_integrity="$(node -e 'process.stdout.write(JSON.parse(process.argv[1]).dist.integrity)' "${registry_metadata}")"
+              if test "${registry_integrity}" = "${local_integrity}"; then
+                echo "Verified ${PACKAGE_NAME}@${package_version} at the public registry"
+                exit 0
+              fi
+            fi
+            sleep 5
+          done
+
+          echo "Public registry did not return the expected integrity" >&2
+          exit 1
 
   github-release:
     name: Publish GitHub release
