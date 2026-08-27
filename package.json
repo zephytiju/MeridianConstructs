@@ -1,0 +1,100 @@
+{
+  "name": "meridian-storage-iac",
+  "version": "1.0.0",
+  "description": "Reusable TypeScript Pulumi constructs for Meridian deployment-time engine placement",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "import": "./dist/contracts/index.js"
+    },
+    "./constructs": {
+      "types": "./dist/constructs/index.d.ts",
+      "import": "./dist/constructs/index.js"
+    },
+    "./jobs": {
+      "types": "./dist/jobs/index.d.ts",
+      "import": "./dist/jobs/index.js"
+    },
+    "./profiles": {
+      "types": "./dist/profiles/index.d.ts",
+      "import": "./dist/profiles/index.js"
+    },
+    "./runtime-config": {
+      "types": "./dist/runtime-config/index.d.ts",
+      "import": "./dist/runtime-config/index.js"
+    },
+    "./validation": {
+      "types": "./dist/validation/index.d.ts",
+      "import": "./dist/validation/index.js"
+    },
+    "./contracts/compatibility.v1.json": "./contracts/compatibility.v1.json",
+    "./contracts/meridian-config.v1.schema.json": "./contracts/meridian-config.v1.schema.json"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "contracts",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "npm@11.9.0",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zephytiju/MeridianConstructs.git"
+  },
+  "homepage": "https://github.com/zephytiju/MeridianConstructs#readme",
+  "bugs": {
+    "url": "https://github.com/zephytiju/MeridianConstructs/issues"
+  },
+  "keywords": [
+    "infrastructure-as-code",
+    "meridian",
+    "pulumi",
+    "typescript"
+  ],
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "node --import tsx scripts/clean-dist.ts && tsc -p tsconfig.build.json",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run contracts:check && npm run test:coverage && npm run build && npm run pack:check",
+    "contracts:check": "node --import tsx scripts/contracts.ts",
+    "contracts:update": "node --import tsx scripts/contracts.ts --write",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "pack:check": "node --import tsx scripts/check-package.ts",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@pulumi/pulumi": "3.257.0",
+    "ajv": "8.20.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "3.2.7",
+    "eslint": "9.39.5",
+    "prettier": "3.9.6",
+    "tsx": "4.23.12",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.67.0",
+    "vitest": "3.2.7"
+  }
+}
