@@ -15,6 +15,7 @@ import {
   defaultValidationPolicy,
   diffPlans,
   normalizeJson,
+  parseResourceSelector,
   planDeployment,
   runtimeConfigContract,
   runtimeEnvironment,
@@ -121,6 +122,17 @@ describe("canonical and primitive validation edges", () => {
 });
 
 describe("contract validation edges", () => {
+  it("parses Resource selectors in bounded linear time", () => {
+    expect(parseResourceSelector("structured:tenant.records.current")).toEqual({
+      catalog: "structured",
+      namespace: "tenant.records",
+      name: "current",
+    });
+    expect(() =>
+      parseResourceSelector(`cache:${"A.".repeat(10_000)}A`),
+    ).toThrowError(/Resource selector is invalid/);
+  });
+
   it("enforces every TLS mode and opaque endpoint shape", () => {
     expect(() => validateTlsPolicy(disabledTls)).not.toThrow();
     expect(() =>

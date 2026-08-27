@@ -316,21 +316,38 @@ export function parseResourceSelector(
     validateResourceSelector(value);
     return Object.freeze({ ...value });
   }
-  const match =
-    /^(structured|object|cache|evidence|streaming):([A-Za-z][A-Za-z0-9_.-]*)\.([A-Za-z][A-Za-z0-9_.-]*)$/.exec(
-      value,
-    );
-  if (match === null) {
+  if (value.length > 1_024) {
     throw new MeridianConstructError(
       constructErrorCodes.invalidReference,
       "Resource selector is invalid",
     );
   }
-  return Object.freeze({
-    catalog: match[1]! as CatalogName,
-    namespace: match[2]!,
-    name: match[3]!,
-  });
+  const catalogSeparator = value.indexOf(":");
+  const resourceSeparator = value.lastIndexOf(".");
+  if (
+    catalogSeparator <= 0 ||
+    resourceSeparator <= catalogSeparator + 1 ||
+    resourceSeparator === value.length - 1
+  ) {
+    throw new MeridianConstructError(
+      constructErrorCodes.invalidReference,
+      "Resource selector is invalid",
+    );
+  }
+  const selector = {
+    catalog: value.slice(0, catalogSeparator) as CatalogName,
+    namespace: value.slice(catalogSeparator + 1, resourceSeparator),
+    name: value.slice(resourceSeparator + 1),
+  };
+  try {
+    validateResourceSelector(selector);
+  } catch {
+    throw new MeridianConstructError(
+      constructErrorCodes.invalidReference,
+      "Resource selector is invalid",
+    );
+  }
+  return Object.freeze(selector);
 }
 
 export function resourceSelectorKey(selector: ResourceSelectorV1): string {
