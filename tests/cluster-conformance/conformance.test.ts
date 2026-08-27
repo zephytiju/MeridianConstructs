@@ -139,7 +139,9 @@ describe("local cluster-equivalent conformance", () => {
     const first = conformanceEvidence(plan, 3);
     const second = conformanceEvidence(plan, 3);
     expect(second).toEqual(first);
-    expect(first.formatVersion).toBe("meridian-storage-iac-conformance.v1");
+    expect(first.formatVersion).toBe(
+      "meridian-storage-constructs-conformance.v1",
+    );
     expect(first.localProfiles).toHaveLength(12);
     expect(first.evidenceFingerprint).toMatch(/^sha256:[0-9a-f]{64}$/);
     expect(() => runDeploymentConformance(deploymentSpec(), 1)).toThrow(

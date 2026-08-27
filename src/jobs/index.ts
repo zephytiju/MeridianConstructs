@@ -23,7 +23,7 @@ import { MeridianConstructError, constructErrorCodes } from "../errors.js";
 const lifecycleJobComponentType = "meridian:storage:LifecycleJob";
 
 export interface LifecycleJobSpecV1 {
-  readonly formatVersion: "meridian-storage-iac-job.v1";
+  readonly formatVersion: "meridian-storage-constructs-job.v1";
   readonly kind: JobKind;
   readonly image: string;
   readonly resources: readonly ResourceSelectorV1[];
@@ -186,7 +186,7 @@ export function createLifecycleJobSpec(
     );
   }
   const body = {
-    formatVersion: "meridian-storage-iac-job.v1" as const,
+    formatVersion: "meridian-storage-constructs-job.v1" as const,
     kind: input.kind,
     image: input.image,
     resources: [...input.resources].sort((a, b) =>

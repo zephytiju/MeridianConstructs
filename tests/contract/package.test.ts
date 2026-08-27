@@ -12,7 +12,7 @@ import {
 } from "../../src/index.js";
 
 describe("one repository, one TypeScript package", () => {
-  it("owns only the Apache-2.0 meridian-storage-iac distribution", () => {
+  it("owns only the Apache-2.0 meridian-storage-constructs distribution", () => {
     const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
       name: string;
       version: string;
@@ -22,7 +22,7 @@ describe("one repository, one TypeScript package", () => {
       publishConfig: { access: string; provenance: boolean };
     };
     expect(packageJson).toMatchObject({
-      name: "meridian-storage-iac",
+      name: "meridian-storage-constructs",
       version: "1.0.0",
       license: "Apache-2.0",
       publishConfig: { access: "public", provenance: true },

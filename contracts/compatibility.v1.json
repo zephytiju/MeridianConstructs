@@ -24,12 +24,12 @@
   "designRevisions": {
     "catalogsAndPublicInterfaces": 70,
     "engineAdapters": 24,
-    "hld": 56,
+    "hld": 61,
     "kafkaAdapter": 6,
-    "meridianConstructs": 45
+    "meridianConstructs": 62
   },
-  "distribution": "meridian-storage-iac",
-  "formatVersion": "meridian-storage-iac-compatibility.v1",
+  "distribution": "meridian-storage-constructs",
+  "formatVersion": "meridian-storage-constructs-compatibility.v1",
   "node": ">=22",
   "packages": {
     "meridian-plugin-observability": "1.0.0",

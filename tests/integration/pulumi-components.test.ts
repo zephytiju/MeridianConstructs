@@ -36,7 +36,7 @@ beforeAll(async () => {
       },
       call: (args) => args.inputs,
     },
-    "meridian-storage-iac",
+    "meridian-storage-constructs",
     "test",
     false,
   );

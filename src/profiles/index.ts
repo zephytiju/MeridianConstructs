@@ -749,8 +749,8 @@ export function defaultEngineProfiles(
 }
 
 export interface CompatibilityContractV1 {
-  readonly formatVersion: "meridian-storage-iac-compatibility.v1";
-  readonly distribution: "meridian-storage-iac";
+  readonly formatVersion: "meridian-storage-constructs-compatibility.v1";
+  readonly distribution: "meridian-storage-constructs";
   readonly node: ">=22";
   readonly designRevisions: Readonly<Record<string, number>>;
   readonly catalogRegistry: readonly CatalogName[];
@@ -764,15 +764,15 @@ export interface CompatibilityContractV1 {
 
 export function compatibilityContract(): CompatibilityContractV1 {
   return Object.freeze({
-    formatVersion: "meridian-storage-iac-compatibility.v1",
-    distribution: "meridian-storage-iac",
+    formatVersion: "meridian-storage-constructs-compatibility.v1",
+    distribution: "meridian-storage-constructs",
     node: ">=22",
     designRevisions: Object.freeze({
       catalogsAndPublicInterfaces: 70,
       engineAdapters: 24,
-      hld: 56,
+      hld: 61,
       kafkaAdapter: 6,
-      meridianConstructs: 45,
+      meridianConstructs: 62,
     }),
     catalogRegistry: [
       "structured",
