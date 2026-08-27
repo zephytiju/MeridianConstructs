@@ -27,7 +27,26 @@ classifiers = [
 ]
 dependencies = ["pulumi==3.259.0"]
 
+[project.scripts]
+meridian-constructs-compatibility = "meridian_constructs.compatibility:main"
+
 [project.optional-dependencies]
+conformance = [
+  "meridian-plugin-observability==1.0.0",
+  "meridian-storage-clickhouse==1.0.0",
+  "meridian-storage-core==1.0.0",
+  "meridian-storage-evidence==1.0.0",
+  "meridian-storage-kafka==1.0.1",
+  "meridian-storage-object-common==1.0.0",
+  "meridian-storage-oci==1.0.0",
+  "meridian-storage-opensearch==1.0.0",
+  "meridian-storage-postgresql==1.0.0",
+  "meridian-storage-query==1.0.0",
+  "meridian-storage-s3==1.0.0",
+  "meridian-storage-semantics==1.0.0",
+  "meridian-storage-streaming==1.0.0",
+  "meridian-storage-valkey==1.0.0",
+]
 test = [
   "bandit[toml]==1.9.4",
   "build==1.5.0",
@@ -52,6 +71,8 @@ include = [
   "/tests",
   "/CHANGELOG.md",
   "/CONTRIBUTING.md",
+  "/docs",
+  "/examples",
   "/LICENSE",
   "/NOTICE",
   "/README.md",
@@ -73,6 +94,7 @@ source = ["meridian_constructs"]
 [tool.coverage.report]
 fail_under = 90
 show_missing = true
+skip_covered = true
 
 [tool.ruff]
 line-length = 100
