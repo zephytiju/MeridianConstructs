@@ -1,0 +1,356 @@
+{
+  "adapterPackages": {
+    "clickhouse": "meridian-storage-clickhouse",
+    "kafka": "meridian-storage-kafka",
+    "oci-distribution": "meridian-storage-oci",
+    "opensearch": "meridian-storage-opensearch",
+    "postgresql": "meridian-storage-postgresql",
+    "s3": "meridian-storage-s3",
+    "valkey": "meridian-storage-valkey"
+  },
+  "catalogRegistry": [
+    "structured",
+    "object",
+    "cache",
+    "evidence",
+    "streaming"
+  ],
+  "consumerRestrictions": {
+    "adapterConcepts": false,
+    "engineConcepts": false,
+    "kafkaImports": false,
+    "nativeQueryV1": false
+  },
+  "designRevisions": {
+    "catalogsAndPublicInterfaces": 70,
+    "engineAdapters": 24,
+    "hld": 56,
+    "kafkaAdapter": 6,
+    "meridianConstructs": 45
+  },
+  "distribution": "meridian-storage-iac",
+  "formatVersion": "meridian-storage-iac-compatibility.v1",
+  "node": ">=22",
+  "packages": {
+    "meridian-plugin-observability": "1.0.0",
+    "meridian-storage-clickhouse": "1.0.0",
+    "meridian-storage-core": "1.0.0",
+    "meridian-storage-evidence": "1.0.0",
+    "meridian-storage-kafka": "1.0.1",
+    "meridian-storage-object-common": "1.0.0",
+    "meridian-storage-oci": "1.0.0",
+    "meridian-storage-opensearch": "1.0.0",
+    "meridian-storage-postgresql": "1.0.0",
+    "meridian-storage-query": "1.0.0",
+    "meridian-storage-s3": "1.0.0",
+    "meridian-storage-semantics": "1.0.0",
+    "meridian-storage-streaming": "1.0.0",
+    "meridian-storage-valkey": "1.0.0"
+  },
+  "profiles": {
+    "apache-kafka": {
+      "adapterContract": "1.0.0",
+      "adapterId": "meridian.kafka",
+      "adapterPackage": "meridian-storage-kafka",
+      "adapterVersion": "1.0.1",
+      "defaultEngineVersion": "4.3.1",
+      "engineProfile": "apache-kafka",
+      "engineVersions": [
+        "4.1.2",
+        "4.2.1",
+        "4.3.1"
+      ],
+      "managedStorage": "required",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.streaming.acknowledge=sha256:08f9bbda3a94d7e2c89ef67bcad3fca44a1688a345b8da662d0e51c398ff0492",
+        "meridian.streaming.create-resource=sha256:4e14f651656ff5fe8af31b7ee839b634427ae81b97577a55d4561b9b1be442a1",
+        "meridian.streaming.group-position=sha256:59017a4598f9702fe3455a70835b0aac916149d824db02b7ebedb65e961d260b",
+        "meridian.streaming.negative-acknowledge=sha256:5cb06c00b5c4e2bb8be85c6fbe8369986efe894654b35ce6cfdf6882874b03f9",
+        "meridian.streaming.poll=sha256:5e349d9df2957282f81e3d58d8b94373668354bae4902a6c18ab560246c07ccc",
+        "meridian.streaming.publish=sha256:c69f4b06dbdb07ecb957685eb53960028da95655b1c65916db00ab8f3e92be5f",
+        "meridian.streaming.publish-batch=sha256:5501c7c3d16236728df56bb0225f05201f0c77b92ce4a7ed79105fd6c08de64a",
+        "meridian.streaming.publish-schema=sha256:84c385f9f6f61a7810cb92181e8f861ad648dfc9e8620e9e9e4f00bdb5049e67",
+        "meridian.streaming.read-range=sha256:d969b988cf10e0418a15d134d7838431cefd8de1b3c96fecba8d40ddc6d23553",
+        "meridian.streaming.replay=sha256:a9bf6f3ecc64fec433c7fbe42e1d1d3b3137473449865db6d9bc710125b38810",
+        "meridian.streaming.subscribe=sha256:295a2d2c539b13aced29ce150949031bff222eab07ae85f52ed844203c356695",
+        "meridian.streaming.transactional-consume-publish=sha256:1416670373112e7358f2bb1a4a6b47cd527dd4188e152e2021352a9090e09568",
+        "meridian.transaction=sha256:8dad9da8ef7c2d30eb797ef881857f6dddb20daa494053290506fdbf5b88db18"
+      ],
+      "profileFingerprint": "sha256:b83253a34e5e4df6d59fc2dd4ece17889689417dcc855abd5cd8c5e8c590bdc0"
+    },
+    "apache-kafka-test": {
+      "adapterContract": "1.0.0",
+      "adapterId": "meridian.kafka",
+      "adapterPackage": "meridian-storage-kafka",
+      "adapterVersion": "1.0.1",
+      "defaultEngineVersion": "4.3.1",
+      "engineProfile": "apache-kafka-test",
+      "engineVersions": [
+        "4.1.2",
+        "4.2.1",
+        "4.3.1"
+      ],
+      "managedStorage": "optional",
+      "minimumTlsMode": "disabled",
+      "operationFingerprints": [
+        "meridian.streaming.acknowledge=sha256:08f9bbda3a94d7e2c89ef67bcad3fca44a1688a345b8da662d0e51c398ff0492",
+        "meridian.streaming.create-resource=sha256:4e14f651656ff5fe8af31b7ee839b634427ae81b97577a55d4561b9b1be442a1",
+        "meridian.streaming.group-position=sha256:59017a4598f9702fe3455a70835b0aac916149d824db02b7ebedb65e961d260b",
+        "meridian.streaming.negative-acknowledge=sha256:5cb06c00b5c4e2bb8be85c6fbe8369986efe894654b35ce6cfdf6882874b03f9",
+        "meridian.streaming.poll=sha256:5e349d9df2957282f81e3d58d8b94373668354bae4902a6c18ab560246c07ccc",
+        "meridian.streaming.publish=sha256:c69f4b06dbdb07ecb957685eb53960028da95655b1c65916db00ab8f3e92be5f",
+        "meridian.streaming.publish-batch=sha256:5501c7c3d16236728df56bb0225f05201f0c77b92ce4a7ed79105fd6c08de64a",
+        "meridian.streaming.publish-schema=sha256:84c385f9f6f61a7810cb92181e8f861ad648dfc9e8620e9e9e4f00bdb5049e67",
+        "meridian.streaming.read-range=sha256:d969b988cf10e0418a15d134d7838431cefd8de1b3c96fecba8d40ddc6d23553",
+        "meridian.streaming.replay=sha256:a9bf6f3ecc64fec433c7fbe42e1d1d3b3137473449865db6d9bc710125b38810",
+        "meridian.streaming.subscribe=sha256:295a2d2c539b13aced29ce150949031bff222eab07ae85f52ed844203c356695",
+        "meridian.streaming.transactional-consume-publish=sha256:1416670373112e7358f2bb1a4a6b47cd527dd4188e152e2021352a9090e09568",
+        "meridian.transaction=sha256:8dad9da8ef7c2d30eb797ef881857f6dddb20daa494053290506fdbf5b88db18"
+      ],
+      "profileFingerprint": "sha256:3b10cdc5ae74688f2793b678ba45e3472c4086940840826fca3e7b4a176d487b"
+    },
+    "aws-s3": {
+      "adapterContract": "1.0.0",
+      "adapterId": "s3",
+      "adapterPackage": "meridian-storage-s3",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "2006-03-01",
+      "engineProfile": "aws-s3",
+      "engineVersions": [
+        "2006-03-01"
+      ],
+      "managedStorage": "provider-managed",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.object.create_resource=sha256:018245635e6560c653943511cdc103fedf2571154f38f680eca8856d50066562",
+        "meridian.object.delete=sha256:0b9e3b6a36ff7704e25bc2bf496f82b155f07abcd46423ab21639842bddb3d23",
+        "meridian.object.get=sha256:d1e5293a26818bcca402b134e5c73f8a7522d8d8736fbe9b7ce2855be1e00670",
+        "meridian.object.list=sha256:6ff656e415744f77ed78e0a39031674bbcf1124cfa5ba342d4583b420aa3ebc5",
+        "meridian.object.publish_schema=sha256:58d2a3746280667bc264255ea0faba60ebb2c4c16d1f5a05746b1fd1c2822ab6",
+        "meridian.object.put=sha256:478bb7ec0f3c108a9d34d2d00fa51b2727e51e6d021f809b1425de4cbe5b2cf3",
+        "meridian.object.read_range=sha256:09815babf7e75e662a9a7e6efe6968603c0da2ca238f21425fc33cc6d84fde9f",
+        "meridian.object.stat=sha256:dadc08286a61556693341da15a390ccaf117917a47ca222e6f776ad83606ea8d"
+      ],
+      "profileFingerprint": "sha256:6bab3d3b7f402ce9065a80236e6d0bfa1818a21993df47da2626a88bd603faf1"
+    },
+    "clickhouse-replicated": {
+      "adapterContract": "1.0.0",
+      "adapterId": "meridian.storage.clickhouse",
+      "adapterPackage": "meridian-storage-clickhouse",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "25.3",
+      "engineProfile": "clickhouse-replicated",
+      "engineVersions": [
+        "25.3"
+      ],
+      "managedStorage": "required",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.evidence.append=sha256:e7bf16d5f22928ae9d0a1817e163f674163ccabc2a6c937eef2c96ced2414c9d",
+        "meridian.evidence.query=sha256:71b2e6106f3e22fee914e20d455a3f5491e6cfd48c97552bbd9da3b5c889c5de",
+        "meridian.structured.aggregate=sha256:41bdc714f15912f2422fd56d4538533819c2a0eb631b572e90247492684d0d6b",
+        "meridian.structured.get=sha256:5c91e33246c52c1d945a5e2d586f6222cfa29bb0142162eea1db05e9311e5089",
+        "meridian.structured.put=sha256:4386cdb1deeb66fb78a93b651522b07c66af3b8ef0c7c71272a6115e37403f7a",
+        "meridian.structured.query=sha256:7c8179c29c4fc1e3d1efbc359b223fd1dc797f3ab58857e766bd07300020b549"
+      ],
+      "profileFingerprint": "sha256:5e555e6c93b57ca5801e58c79659ec5e694bc349fb39002c23457609b61df3c2"
+    },
+    "clickhouse-standalone": {
+      "adapterContract": "1.0.0",
+      "adapterId": "meridian.storage.clickhouse",
+      "adapterPackage": "meridian-storage-clickhouse",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "25.3",
+      "engineProfile": "clickhouse-standalone",
+      "engineVersions": [
+        "25.3"
+      ],
+      "managedStorage": "required",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.evidence.append=sha256:e7bf16d5f22928ae9d0a1817e163f674163ccabc2a6c937eef2c96ced2414c9d",
+        "meridian.evidence.query=sha256:71b2e6106f3e22fee914e20d455a3f5491e6cfd48c97552bbd9da3b5c889c5de",
+        "meridian.structured.aggregate=sha256:41bdc714f15912f2422fd56d4538533819c2a0eb631b572e90247492684d0d6b",
+        "meridian.structured.get=sha256:5c91e33246c52c1d945a5e2d586f6222cfa29bb0142162eea1db05e9311e5089",
+        "meridian.structured.put=sha256:4386cdb1deeb66fb78a93b651522b07c66af3b8ef0c7c71272a6115e37403f7a",
+        "meridian.structured.query=sha256:7c8179c29c4fc1e3d1efbc359b223fd1dc797f3ab58857e766bd07300020b549"
+      ],
+      "profileFingerprint": "sha256:70c1fb843542be8b07ed67dfac7e226b929ef21c4748610897dc5a556223c0a8"
+    },
+    "oci-distribution": {
+      "adapterContract": "1.0.0",
+      "adapterId": "oci-distribution",
+      "adapterPackage": "meridian-storage-oci",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "1.1.1",
+      "engineProfile": "oci-distribution",
+      "engineVersions": [
+        "1.1.1"
+      ],
+      "managedStorage": "provider-managed",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.object.delete=sha256:74bc67edffd748aff411362b77f5801e474eeb6d242a1cb54fc6d1f724ef232c",
+        "meridian.object.get=sha256:61551b6cd14d4289d2845ed4fe6164a907d91a1ac30e676bbdd0bb5ee35a09e0",
+        "meridian.object.list=sha256:6ff656e415744f77ed78e0a39031674bbcf1124cfa5ba342d4583b420aa3ebc5",
+        "meridian.object.put=sha256:3ac5cb8b953c7d6f0d6ea80f7d97c1dc03d394c9d8a357d7d58634f1d7c1af55",
+        "meridian.object.read_range=sha256:df3fc9438c99162d7b8aba127c6af62c5233c4ef018d8b283a1bdc477c462791",
+        "meridian.object.stat=sha256:a1a43439f7e95c6a9acbbbad99dba7e25f3b3459867c1a62507d19bfd3ce0a6d"
+      ],
+      "profileFingerprint": "sha256:e8b2c55cd8fd702b7506a6f5702aec0b6d840099d39ceaec45f17397bd3fb80c"
+    },
+    "opensearch": {
+      "adapterContract": "1.0.0",
+      "adapterId": "org.meridian.storage.opensearch",
+      "adapterPackage": "meridian-storage-opensearch",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "2.19.1",
+      "engineProfile": "opensearch",
+      "engineVersions": [
+        "2.17.0",
+        "2.18.0",
+        "2.19.0",
+        "2.19.1",
+        "2.19.2",
+        "3.0.0",
+        "3.1.0",
+        "3.2.0"
+      ],
+      "managedStorage": "optional",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.structured.search=sha256:f66a18d89e488b50ad43ebc4658398048b5a7486352caa0a7bebc99ba5c1dbf4"
+      ],
+      "profileFingerprint": "sha256:f043dcec7fecb1bc9acdbdad321f9ac6ee4c0e980fcf2371357a1bb071d8047f"
+    },
+    "postgresql-postgis-cluster": {
+      "adapterContract": "1.0.0",
+      "adapterId": "postgresql",
+      "adapterPackage": "meridian-storage-postgresql",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "17-postgis-3.5",
+      "engineProfile": "postgresql-postgis-cluster",
+      "engineVersions": [
+        "16-postgis-3.4",
+        "17-postgis-3.5"
+      ],
+      "managedStorage": "required",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.evidence.append=sha256:7b9aa4e244f82b25a50233f8edd979b9600ce94c1ac8b8ae2d520a6473fdea79",
+        "meridian.evidence.query=sha256:2b4d02268b1ed8aaff101d604ebdd854362372f6954ed42b3a38ee853ea487f8",
+        "meridian.structured.aggregate=sha256:0edef4aac939965a98b62dc6381998e199922bfed7bd4a45915090fdfa3da2bb",
+        "meridian.structured.create_resource=sha256:73cfa1e776bfb3f0bcbf5b986882e034f39ac269030c7be0cc401c17348e11ef",
+        "meridian.structured.delete=sha256:aba992ec4c075dd1f50daba727892799a04d7bdf68c3749d6ffb3cbb3b38c2d0",
+        "meridian.structured.get=sha256:34477ce6259e17e90d810991902205c0b79f2ca00c9050161cc475bb1fa4e23c",
+        "meridian.structured.patch=sha256:a032e9eba0a8ac5416163eef36ba03f216a26d4c6593a5d9462eaeabbaef2b1e",
+        "meridian.structured.publish_schema=sha256:bc48a5432171b98bd9a1694761d5f83eebbd3b408f0d90742eff615371d0ee3f",
+        "meridian.structured.put=sha256:c8626680b5cfddab698fa1ad9ff229c4cf6a4ae973bd635c68cb85309bbf5a4f",
+        "meridian.structured.query=sha256:73e6cc162e18a43a0a07470098b5dbdb356acc3b9e7a3a3b281e8783ec3acb39",
+        "meridian.structured.search=sha256:1f885191e9874e5364bbc3ca27fd0f446817d725f5c135aa0ceca11f3963ab12",
+        "meridian.structured.traverse=sha256:cecdd92753d996181de6708458b9a1abc7ab15f2261a3f405e6708db4f10a00a",
+        "meridian.transaction=sha256:de6a6399f94304a60e1697347c0cbbaac206bb45b344bfdd7a97c395a0a64bf0"
+      ],
+      "profileFingerprint": "sha256:e3d66dcc958b2c2516f9d325c9d96b257651a335c2b62c25036c8a251e404954"
+    },
+    "postgresql-postgis-local-single-primary": {
+      "adapterContract": "1.0.0",
+      "adapterId": "postgresql",
+      "adapterPackage": "meridian-storage-postgresql",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "17-postgis-3.5",
+      "engineProfile": "postgresql-postgis-local-single-primary",
+      "engineVersions": [
+        "16-postgis-3.4",
+        "17-postgis-3.5"
+      ],
+      "managedStorage": "required",
+      "minimumTlsMode": "disabled",
+      "operationFingerprints": [
+        "meridian.evidence.append=sha256:7b9aa4e244f82b25a50233f8edd979b9600ce94c1ac8b8ae2d520a6473fdea79",
+        "meridian.evidence.query=sha256:2b4d02268b1ed8aaff101d604ebdd854362372f6954ed42b3a38ee853ea487f8",
+        "meridian.structured.aggregate=sha256:0edef4aac939965a98b62dc6381998e199922bfed7bd4a45915090fdfa3da2bb",
+        "meridian.structured.create_resource=sha256:73cfa1e776bfb3f0bcbf5b986882e034f39ac269030c7be0cc401c17348e11ef",
+        "meridian.structured.delete=sha256:aba992ec4c075dd1f50daba727892799a04d7bdf68c3749d6ffb3cbb3b38c2d0",
+        "meridian.structured.get=sha256:34477ce6259e17e90d810991902205c0b79f2ca00c9050161cc475bb1fa4e23c",
+        "meridian.structured.patch=sha256:a032e9eba0a8ac5416163eef36ba03f216a26d4c6593a5d9462eaeabbaef2b1e",
+        "meridian.structured.publish_schema=sha256:bc48a5432171b98bd9a1694761d5f83eebbd3b408f0d90742eff615371d0ee3f",
+        "meridian.structured.put=sha256:c8626680b5cfddab698fa1ad9ff229c4cf6a4ae973bd635c68cb85309bbf5a4f",
+        "meridian.structured.query=sha256:73e6cc162e18a43a0a07470098b5dbdb356acc3b9e7a3a3b281e8783ec3acb39",
+        "meridian.structured.search=sha256:1f885191e9874e5364bbc3ca27fd0f446817d725f5c135aa0ceca11f3963ab12",
+        "meridian.structured.traverse=sha256:cecdd92753d996181de6708458b9a1abc7ab15f2261a3f405e6708db4f10a00a",
+        "meridian.transaction=sha256:de6a6399f94304a60e1697347c0cbbaac206bb45b344bfdd7a97c395a0a64bf0"
+      ],
+      "profileFingerprint": "sha256:71d35b68d4044664b013af93d3a5949e7fee25b771d4ef93e3002c1ffd1499a5"
+    },
+    "s3-compatible": {
+      "adapterContract": "1.0.0",
+      "adapterId": "s3",
+      "adapterPackage": "meridian-storage-s3",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "2006-03-01",
+      "engineProfile": "s3-compatible",
+      "engineVersions": [
+        "2006-03-01"
+      ],
+      "managedStorage": "required",
+      "minimumTlsMode": "disabled",
+      "operationFingerprints": [
+        "meridian.object.create_resource=sha256:018245635e6560c653943511cdc103fedf2571154f38f680eca8856d50066562",
+        "meridian.object.delete=sha256:0b9e3b6a36ff7704e25bc2bf496f82b155f07abcd46423ab21639842bddb3d23",
+        "meridian.object.get=sha256:d1e5293a26818bcca402b134e5c73f8a7522d8d8736fbe9b7ce2855be1e00670",
+        "meridian.object.list=sha256:6ff656e415744f77ed78e0a39031674bbcf1124cfa5ba342d4583b420aa3ebc5",
+        "meridian.object.publish_schema=sha256:58d2a3746280667bc264255ea0faba60ebb2c4c16d1f5a05746b1fd1c2822ab6",
+        "meridian.object.put=sha256:478bb7ec0f3c108a9d34d2d00fa51b2727e51e6d021f809b1425de4cbe5b2cf3",
+        "meridian.object.read_range=sha256:09815babf7e75e662a9a7e6efe6968603c0da2ca238f21425fc33cc6d84fde9f",
+        "meridian.object.stat=sha256:dadc08286a61556693341da15a390ccaf117917a47ca222e6f776ad83606ea8d"
+      ],
+      "profileFingerprint": "sha256:3e4fbc5a8734cb1dcf7b6e5a1b355000a6bfb8f82a4db1395d2c0ea105ec5000"
+    },
+    "valkey-sentinel": {
+      "adapterContract": "1.0.0",
+      "adapterId": "org.meridian.storage.valkey",
+      "adapterPackage": "meridian-storage-valkey",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "8.1.9",
+      "engineProfile": "valkey-sentinel",
+      "engineVersions": [
+        "8.1.9"
+      ],
+      "managedStorage": "disposable",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.cache.compare_and_set=sha256:5058b74ecb0dc272614998a2c72ccee9b610ba267de1cca88b02bb6d29494738",
+        "meridian.cache.delete=sha256:4a929e63b9db75dd60b127c3d560460f75a3b6829780c22c832668e1f6dc72e4",
+        "meridian.cache.get=sha256:794f67fb548553d3ffdd62758f1009953c782681f9def4af96b4c6999bf7e736",
+        "meridian.cache.invalidate=sha256:11b9b47928d37fc1e7e1e5caf838b107cb807ac4f8c6a0f00fe249ca15afdb9b",
+        "meridian.cache.put=sha256:8af6c562484578c321bc5868c44fa89c1c4f33da0d148e733816939ab64430a0",
+        "meridian.cache.put_if_absent=sha256:ec99fed6d1ce5d606c839d80b220bd64b2278716ae2a0525b8fe83c076409424"
+      ],
+      "profileFingerprint": "sha256:ac3b0a0f0a9be2720b53b03d3f4f38278e46bdef2927ea9154ec87639eac3000"
+    },
+    "valkey-standalone": {
+      "adapterContract": "1.0.0",
+      "adapterId": "org.meridian.storage.valkey",
+      "adapterPackage": "meridian-storage-valkey",
+      "adapterVersion": "1.0.0",
+      "defaultEngineVersion": "8.1.9",
+      "engineProfile": "valkey-standalone",
+      "engineVersions": [
+        "8.1.9"
+      ],
+      "managedStorage": "disposable",
+      "minimumTlsMode": "server",
+      "operationFingerprints": [
+        "meridian.cache.compare_and_set=sha256:5058b74ecb0dc272614998a2c72ccee9b610ba267de1cca88b02bb6d29494738",
+        "meridian.cache.delete=sha256:4a929e63b9db75dd60b127c3d560460f75a3b6829780c22c832668e1f6dc72e4",
+        "meridian.cache.get=sha256:794f67fb548553d3ffdd62758f1009953c782681f9def4af96b4c6999bf7e736",
+        "meridian.cache.invalidate=sha256:11b9b47928d37fc1e7e1e5caf838b107cb807ac4f8c6a0f00fe249ca15afdb9b",
+        "meridian.cache.put=sha256:8af6c562484578c321bc5868c44fa89c1c4f33da0d148e733816939ab64430a0",
+        "meridian.cache.put_if_absent=sha256:ec99fed6d1ce5d606c839d80b220bd64b2278716ae2a0525b8fe83c076409424"
+      ],
+      "profileFingerprint": "sha256:7587cf38ca8e69b22f99f7ff915f0ff0a0ee339e6db8eb62ffabc69f44dbd993"
+    }
+  }
+}

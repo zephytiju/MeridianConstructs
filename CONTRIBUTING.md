@@ -3,27 +3,25 @@
 # Contributing
 
 Changes must preserve the one-repository/one-distribution boundary, the five-Catalog registry,
-deployment-only engine selection, opaque secret references, deterministic serialization, and
-independent Platform/Vangu state authority. Run the complete local gate before opening a pull
-request:
+deployment-only Engine selection, opaque secret references, deterministic serialization, and
+independent Platform/Vangu state authority.
+
+Install and run the complete local gate before opening a pull request:
 
 ```bash
-python -m pip install -e '.[test]'
-ruff format --check src tests
-ruff check src tests
-python -m mypy src
-pytest
-bandit -c pyproject.toml -r src
-python -m pip_audit . --strict
-python -m build
-python -m twine check dist/*
+npm ci --ignore-scripts
+npm run check
+npm audit --audit-level=high
 ```
 
-Changes to compatibility require updating both the executable profile registry and
-`src/meridian_constructs/contracts/compatibility.v1.json`. The released-package gate is:
+Compatibility changes must update the executable profile registry and then regenerate the
+machine-readable contract:
 
 ```bash
-python -m pip install -e '.[test,conformance]'
-meridian-constructs-compatibility --verify-installed --json
-pytest tests/integration/test_released_runtime.py
+npm run contracts:update
+npm run contracts:check
 ```
+
+Do not add Adapter or Kafka runtime dependencies, provider construction, ambient credential
+discovery, `StackReference`, inline secrets, NativeQuery, or additional Catalog names. Changes to
+the public architecture or interfaces require an approved design write-back before merge.

@@ -9,6 +9,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     name: Build, verify, and attest
@@ -22,69 +26,78 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - name: Set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          python-version: "3.12"
-          cache: pip
-      - name: Install exact build environment
-        run: python -m pip install --disable-pip-version-check -e '.[test]'
+          node-version: "24.14.0"
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Verify immutable tag identity
+        run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"
+      - name: Install exact dependency graph
+        run: npm ci --ignore-scripts
       - name: Run release gate
         run: |
-          ruff format --check src tests
-          ruff check src tests
-          python -m mypy src
-          pytest --cov=meridian_constructs --cov-report=term-missing
-          bandit -c pyproject.toml -r src
-          python -m pip_audit . --strict
-      - name: Build distributions
+          npm run check
+          npm audit --audit-level=high
+      - name: Build release artifacts
         run: |
-          python -m build
-          python -m twine check dist/*
-      - name: Upload distributions
+          mkdir -p release
+          npm pack --ignore-scripts --pack-destination release
+          npm sbom --sbom-format spdx > release/meridian-storage-iac.spdx.json
+          sha256sum release/*.tgz release/*.json > release/SHA256SUMS
+      - name: Upload release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: python-distributions
-          path: dist/
+          name: npm-distribution
+          path: release/
           if-no-files-found: error
-      - name: Attest distributions
+      - name: Attest npm tarball and SBOM
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
-          subject-path: dist/*
+          subject-path: |
+            release/*.tgz
+            release/*.spdx.json
+
+  npm:
+    name: Publish npm
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: npm
+      url: https://www.npmjs.com/package/meridian-storage-iac
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download release artifacts
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: npm-distribution
+          path: release/
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "24.14.0"
+          registry-url: https://registry.npmjs.org
+      - name: Publish with npm trusted publishing and provenance
+        run: npm publish release/*.tgz --access public --provenance
+      - name: Verify public registry receipt
+        run: npm view "meridian-storage-iac@${GITHUB_REF_NAME#v}" version --json
 
   github-release:
     name: Publish GitHub release
-    needs: build
+    needs: [build, npm]
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Download distributions
+      - name: Download release artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: python-distributions
-          path: dist/
+          name: npm-distribution
+          path: release/
       - name: Create immutable release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" dist/* --generate-notes --verify-tag
-
-  pypi:
-    name: Publish PyPI
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/project/meridian-constructs/
-    permissions:
-      id-token: write
-    steps:
-      - name: Download distributions
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: python-distributions
-          path: dist/
-      - name: Publish with trusted identity
-        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
-        with:
-          packages-dir: dist/
+        run: gh release create "${GITHUB_REF_NAME}" release/* --generate-notes --verify-tag

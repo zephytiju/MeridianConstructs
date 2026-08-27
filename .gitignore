@@ -1,11 +1,14 @@
 # SPDX-License-Identifier: Apache-2.0
+.env
+.env.*
 .coverage
-.mypy_cache/
 .pytest_cache/
+.mypy_cache/
 .ruff_cache/
 .venv/
 __pycache__/
-*.egg-info/
-build/
-coverage.xml
+.npm/
+coverage/
 dist/
+node_modules/
+*.tgz

@@ -5,13 +5,13 @@
 ## Supported versions
 
 | Version | Supported |
-| --- | --- |
-| 0.1.x | Yes |
-| Earlier | No |
+| ------- | --------- |
+| 1.x     | Yes       |
+| Earlier | No        |
 
 Report suspected vulnerabilities privately through GitHub Security Advisories. Do not place
-credentials, private endpoints, tenant data, secret values, identity tokens, or Pulumi state in
-public issues.
+credentials, private endpoints, tenant data, secret values, identity tokens, Pulumi state, or
+deployment outputs in public issues.
 
 MeridianConstructs accepts opaque identity and secret locators only. Runtime configuration and
 component outputs must never contain secret bytes. Provider credentials and stack state remain

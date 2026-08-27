@@ -2,24 +2,34 @@
 
 # Conformance and evidence
 
-`run_deployment_conformance` executes repeated planning, compares byte-identical canonical JSON,
-checks the packaged compatibility contract, and validates the result against the released closed
-`meridian-config.v1` JSON Schema.
+`runDeploymentConformance` plans repeatedly, compares byte-identical canonical JSON, and validates
+the result against the released closed `meridian-config.v1` JSON Schema.
 
-`run_local_cluster_conformance` is provider neutral. A fixture implements `LocalClusterHarness`
-for Docker, Kubernetes, or another local cluster-equivalent environment and returns an
-authenticated `ProbeResult`. The harness verifies:
+`runLocalClusterConformance` is provider-neutral. A Docker, Kubernetes, or equivalent local
+fixture implements `LocalClusterHarnessV1` and returns authenticated probe evidence. The harness
+fails closed unless it observes:
 
-- the exact released Adapter and Engine profile/version;
-- exactly one primary for single and replicated topologies;
-- all declared roles are healthy;
-- the complete released operation surface is present.
+- the exact released Adapter, Engine profile, and pinned Engine version;
+- exactly one primary where the Engine defines a primary role, and every declared topology role
+  healthy;
+- every released operation contract; and
+- every acceptance stage from fresh/no-change apply through failover, recovery, runtime startup,
+  and semantic conformance.
 
-The shipped matrix includes PostgreSQL single/cluster, OpenSearch single/cluster, ClickHouse
+The shipped harness matrix contains PostgreSQL single/cluster, OpenSearch single/cluster, ClickHouse
 single/replicated, Valkey standalone/Sentinel, S3-compatible, OCI Distribution, and Kafka
-test/cluster profiles. The package provisions none of those products itself; the local fixture
-uses the same explicit provider boundary as production.
+test/cluster profiles. The library provisions none of those products itself; concrete fixtures use
+the same caller-supplied provider and provisioner boundaries as production. Unit contract tests
+also lock the guarantees and default limits from every released Adapter descriptor; the Adapter
+repositories remain authoritative for their engine-backed cluster evidence.
 
-`conformance_evidence` returns a deterministic document containing the deployment fingerprint,
-compatibility fingerprint, preview repeat count, local profile IDs, and its own evidence
-fingerprint. CI logs this evidence and validates generated artifacts.
+`conformanceEvidence` emits the deployment fingerprint, compatibility fingerprint, repeat count,
+local profile IDs, and an evidence fingerprint. CI also records JUnit results, Cobertura/LCOV
+coverage, the npm tarball, its SHA-256 checksum, and package-content verification.
+
+Run the local acceptance gate with:
+
+```bash
+npm ci --ignore-scripts
+npm run check
+```

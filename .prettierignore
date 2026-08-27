@@ -1,0 +1,6 @@
+coverage
+contracts
+dist
+node_modules
+package-lock.json
+.venv
