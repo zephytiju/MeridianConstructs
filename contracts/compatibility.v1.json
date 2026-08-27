@@ -24,11 +24,11 @@
   "designRevisions": {
     "catalogsAndPublicInterfaces": 70,
     "engineAdapters": 24,
-    "hld": 61,
+    "hld": 62,
     "kafkaAdapter": 6,
-    "meridianConstructs": 62
+    "meridianConstructs": 63
   },
-  "distribution": "meridian-storage-constructs",
+  "distribution": "@zephytiju/meridian-storage-constructs",
   "formatVersion": "meridian-storage-constructs-compatibility.v1",
   "node": ">=22",
   "packages": {

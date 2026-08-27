@@ -16,7 +16,7 @@ import type {
   TlsPolicy,
 } from "../../src/index.js";
 
-describe("locked revision 62 public interfaces", () => {
+describe("locked revision 63 public interfaces", () => {
   it("keeps only deployment-resolved Binding fields as Pulumi Outputs", () => {
     expectTypeOf<MeridianBindingOutputV1["bindingRef"]>().toEqualTypeOf<
       pulumi.Output<string>

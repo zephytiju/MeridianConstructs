@@ -243,7 +243,9 @@ describe("released Engine profiles", () => {
 
   it("publishes a TypeScript-only compatibility contract", () => {
     const contract = compatibilityContract();
-    expect(contract.distribution).toBe("meridian-storage-constructs");
+    expect(contract.distribution).toBe(
+      "@zephytiju/meridian-storage-constructs",
+    );
     expect(contract.node).toBe(">=22");
     expect(contract.catalogRegistry).toEqual(catalogNames);
     expect(contract.consumerRestrictions).toEqual({
@@ -253,7 +255,7 @@ describe("released Engine profiles", () => {
       nativeQueryV1: false,
     });
     expect(JSON.stringify(contract)).not.toContain('"python"');
-    expect(contract.designRevisions.meridianConstructs).toBe(62);
+    expect(contract.designRevisions.meridianConstructs).toBe(63);
     expect(contract.profiles.opensearch?.operationFingerprints).toHaveLength(1);
     expect(fingerprintB).toMatch(/^sha256:/);
   });

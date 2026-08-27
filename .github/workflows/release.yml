@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p release
           npm pack --ignore-scripts --pack-destination release
-          npm sbom --sbom-format spdx > release/meridian-storage-constructs.spdx.json
+          npm sbom --sbom-format spdx > release/zephytiju-meridian-storage-constructs.spdx.json
           sha256sum release/*.tgz release/*.json > release/SHA256SUMS
       - name: Upload release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: npm
-      url: https://www.npmjs.com/package/meridian-storage-constructs
+      url: https://www.npmjs.com/package/@zephytiju/meridian-storage-constructs
     permissions:
       contents: read
       id-token: write
@@ -82,7 +82,7 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Publish with npm trusted publishing and provenance
         env:
-          PACKAGE_NAME: meridian-storage-constructs
+          PACKAGE_NAME: "@zephytiju/meridian-storage-constructs"
         run: |
           set -euo pipefail
           mapfile -t package_tarballs < <(find release -maxdepth 1 -type f -name '*.tgz' -print)
@@ -100,7 +100,7 @@ jobs:
             npm publish "${package_tarball}" --access public --provenance
           fi
       - name: Verify public registry receipt
-        run: npm view "meridian-storage-constructs@${GITHUB_REF_NAME#v}" version --json
+        run: npm view "@zephytiju/meridian-storage-constructs@${GITHUB_REF_NAME#v}" version --json
 
   github-release:
     name: Publish GitHub release
