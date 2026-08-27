@@ -51,7 +51,7 @@ export interface LocalClusterHarnessV1 {
 }
 
 export interface ConformanceEvidenceV1 {
-  readonly formatVersion: "meridian-storage-iac-conformance.v1";
+  readonly formatVersion: "meridian-storage-constructs-conformance.v1";
   readonly deploymentFingerprint: string;
   readonly compatibilityFingerprint: string;
   readonly repeatCount: number;
@@ -237,7 +237,7 @@ export function conformanceEvidence(
     localProfiles: profiles.map((item) => item.id),
   };
   return Object.freeze({
-    formatVersion: "meridian-storage-iac-conformance.v1",
+    formatVersion: "meridian-storage-constructs-conformance.v1",
     ...body,
     evidenceFingerprint: fingerprint(body),
   });

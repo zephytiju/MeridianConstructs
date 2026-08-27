@@ -5,7 +5,7 @@
 [![CI](https://github.com/zephytiju/MeridianConstructs/actions/workflows/ci.yml/badge.svg)](https://github.com/zephytiju/MeridianConstructs/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/zephytiju/MeridianConstructs/actions/workflows/codeql.yml/badge.svg)](https://github.com/zephytiju/MeridianConstructs/actions/workflows/codeql.yml)
 
-`meridian-storage-iac` is the reusable TypeScript Pulumi construct library for deployment-time
+`meridian-storage-constructs` is the reusable TypeScript Pulumi construct library for deployment-time
 Meridian Engine selection. It validates Resource placement and released Adapter capabilities,
 supports managed and external Engines through explicit provider injection, and produces a closed,
 canonical `meridian-config.v1` document plus logical Platform capability outputs.
@@ -14,7 +14,7 @@ The package does not import any Adapter—including Kafka—and never creates pr
 ambient credentials, reads another stack, or assumes Platform/Vangu state and lifecycle authority.
 
 ```bash
-npm install meridian-storage-iac @pulumi/pulumi
+npm install meridian-storage-constructs @pulumi/pulumi
 ```
 
 ```ts
@@ -22,7 +22,7 @@ import {
   ExternalEngine,
   getEngineProfile,
   parseResourceSelector,
-} from "meridian-storage-iac";
+} from "meridian-storage-constructs";
 
 const profile = getEngineProfile("postgresql-postgis-local-single-primary");
 const resource = parseResourceSelector("structured:orders.records");
@@ -110,10 +110,10 @@ with coverage, compilation, and package-content inspection. See
 
 ## Design baseline
 
-This release is locked to Meridian HLD revision 56, Catalogs and Public Interfaces revision 70,
-Engine Adapters revision 24, Kafka Adapter revision 6, and MeridianConstructs revision 45. The
+This release is locked to Meridian HLD revision 61, Catalogs and Public Interfaces revision 70,
+Engine Adapters revision 24, Kafka Adapter revision 6, and MeridianConstructs revision 62. The
 canonical repository is `zephytiju/MeridianConstructs`; the npm distribution is
-`meridian-storage-iac`.
+`meridian-storage-constructs`.
 
 ## License
 

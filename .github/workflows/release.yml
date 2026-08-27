@@ -44,7 +44,7 @@ jobs:
         run: |
           mkdir -p release
           npm pack --ignore-scripts --pack-destination release
-          npm sbom --sbom-format spdx > release/meridian-storage-iac.spdx.json
+          npm sbom --sbom-format spdx > release/meridian-storage-constructs.spdx.json
           sha256sum release/*.tgz release/*.json > release/SHA256SUMS
       - name: Upload release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -65,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: npm
-      url: https://www.npmjs.com/package/meridian-storage-iac
+      url: https://www.npmjs.com/package/meridian-storage-constructs
     permissions:
       contents: read
       id-token: write
@@ -81,9 +81,26 @@ jobs:
           node-version: "24.14.0"
           registry-url: https://registry.npmjs.org
       - name: Publish with npm trusted publishing and provenance
-        run: npm publish release/*.tgz --access public --provenance
+        env:
+          PACKAGE_NAME: meridian-storage-constructs
+        run: |
+          set -euo pipefail
+          mapfile -t package_tarballs < <(find release -maxdepth 1 -type f -name '*.tgz' -print)
+          test "${#package_tarballs[@]}" -eq 1
+          package_tarball="${package_tarballs[0]}"
+          package_version="${GITHUB_REF_NAME#v}"
+          local_integrity="sha512-$(openssl dgst -sha512 -binary "${package_tarball}" | openssl base64 -A)"
+
+          if registry_integrity="$(npm view "${PACKAGE_NAME}@${package_version}" dist.integrity --json 2>/dev/null)"; then
+            registry_integrity="${registry_integrity%\"}"
+            registry_integrity="${registry_integrity#\"}"
+            test "${registry_integrity}" = "${local_integrity}"
+            echo "${PACKAGE_NAME}@${package_version} is already public with matching integrity"
+          else
+            npm publish "${package_tarball}" --access public --provenance
+          fi
       - name: Verify public registry receipt
-        run: npm view "meridian-storage-iac@${GITHUB_REF_NAME#v}" version --json
+        run: npm view "meridian-storage-constructs@${GITHUB_REF_NAME#v}" version --json
 
   github-release:
     name: Publish GitHub release
@@ -99,5 +116,6 @@ jobs:
           path: release/
       - name: Create immutable release
         env:
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: gh release create "${GITHUB_REF_NAME}" release/* --generate-notes --verify-tag
