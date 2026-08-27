@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createHash } from "node:crypto";
-import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   canonicalJson,
@@ -64,12 +65,21 @@ describe("one repository, one TypeScript package", () => {
     expect(
       files.filter((path) => path.startsWith("src/") && path.endsWith(".py")),
     ).toEqual([]);
-    const imports = spawnSync(
-      "rg",
-      ["-n", "(?:from|require\\() .*kafka", "src", "-g", "*.ts"],
-      { encoding: "utf8" },
+    const source = sourceFiles("src")
+      .map((path) => readFileSync(path, "utf8"))
+      .join("\n");
+    expect(source).not.toMatch(
+      /(?:from\s+|import\s*\(|require\s*\()\s*["'][^"']*(?:kafka|adapter)/i,
     );
-    expect(imports.status).toBe(1);
-    expect(imports.stdout).toBe("");
   });
 });
+
+function sourceFiles(directory: string): readonly string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) {
+      return sourceFiles(path);
+    }
+    return path.endsWith(".ts") ? [path] : [];
+  });
+}
