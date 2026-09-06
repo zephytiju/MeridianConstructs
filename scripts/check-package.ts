@@ -21,10 +21,10 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
 };
 if (
   packageJson.name !== "@zephytiju/meridian-storage-constructs" ||
-  packageJson.version !== "1.0.0"
+  packageJson.version !== "1.1.0"
 ) {
   throw new Error(
-    "The repository must publish only @zephytiju/meridian-storage-constructs@1.0.0",
+    "The repository must publish only @zephytiju/meridian-storage-constructs@1.1.0",
   );
 }
 if (packageJson.workspaces !== undefined) {
@@ -60,6 +60,11 @@ for (const required of [
   "contracts/meridian-config.v1.schema.json",
   "dist/index.d.ts",
   "dist/index.js",
+  "docs/projection-jobs.md",
+  "dist/jobs/projection/assets/worker.py",
+  "dist/jobs/projection/assets/supervisor.py",
+  "dist/jobs/projection/assets/versioned_target.py",
+  "dist/jobs/projection/assets/requirements.txt",
 ]) {
   if (!files.has(required)) {
     throw new Error(`npm package is missing ${required}`);
@@ -68,8 +73,12 @@ for (const required of [
 if (
   [...files].some(
     (path) =>
-      path.endsWith(".py") ||
+      (path.endsWith(".py") &&
+        !["worker.py", "supervisor.py", "versioned_target.py"].some(
+          (name) => path === `dist/jobs/projection/assets/${name}`,
+        )) ||
       path.endsWith(".whl") ||
+      path.endsWith(".pyc") ||
       path.endsWith(".tar.gz") ||
       path.includes("meridian_constructs") ||
       path === "pyproject.toml",

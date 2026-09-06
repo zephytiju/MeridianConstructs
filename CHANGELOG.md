@@ -2,6 +2,15 @@
 
 # Changelog
 
+## 1.1.0 — 2026-09-06
+
+- Add durable projection job validation for released PostgreSQL/provider packages,
+  same-Binding source/intent placement, Schema/capability pins and opaque secret references.
+- Package caller-owned worker/supervisor templates with bounded whole-call and batch
+  budgets, stop/drain/termination handling and redacted lifecycle evidence.
+- Preserve integer-version target identities, latest-version reads and tombstones;
+  verify actual host crash/restart, rollback and graceful/failed drain on PostgreSQL 16/17.
+
 ## 1.0.0 - 2026-08-26
 
 - Publish the authoritative TypeScript Pulumi distribution,
