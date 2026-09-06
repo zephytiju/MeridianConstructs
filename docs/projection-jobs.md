@@ -41,6 +41,60 @@ contract/manifest pins and must not be populated with Python distribution versio
 The older general Engine profiles in this package retain their existing compatibility
 baseline. The dedicated projection template consumes the supplied released descriptors.
 
+### Required atomic Evidence
+
+Constructs 1.2.0 adds `requiredEvidence?: readonly ResourceSelectorV1[]`, defaulting
+to `[]`. List only Evidence Resources that must participate in the source write
+transaction, and add `"meridian-storage-evidence": "1.0.1"` to `packages`:
+
+```ts
+const evidenceInputs = {
+  requiredEvidence: [
+    { catalog: "evidence" as const, namespace: "orders", name: "audit" },
+  ],
+  packages: { ...projectionPackagePins, "meridian-storage-evidence": "1.0.1" },
+};
+// Include evidenceInputs in durableProjectionJob together with the normal inputs.
+```
+
+Each participant must be registered and fingerprint-pinned, resolve exactly once,
+and share the source/outbox runtime Binding. Merely sharing a database is insufficient.
+The source Binding must advertise atomic `meridian.transaction@1.0.0` and canonical
+`atomic-evidence` for `meridian.evidence.append@1.0.0`. Unlisted optional Evidence may
+retain a separate Binding; the asynchronous target remains outside the source group.
+
+Preview validates placement and pinned manifests. Before the host constructor returns
+or creates its OutboxPort, it repeats the checks against the started runtime's registry
+and authenticated capabilities. This host is coupled to the exact Core runtime pins
+above, including its existing registry/manifest inspection path. No Core config or
+adapter interface changes are needed.
+
+Nonempty declarations produce worker contract `1.1.0`, sorted canonical
+`requiredEvidence` references, the complete job Resource set and validated package
+pins inside the job fingerprint. The updated host rejects mismatched versions,
+declarations or installed packages. Evidence-free inputs retain worker `1.0.0`;
+an explicitly supplied Evidence pin is validated and retained even for an empty
+declaration. Rebuild caller-owned images with these host files and requirements:
+the previous 1.1.0 npm host rejects required-Evidence specifications through its
+strict package-set check. All requirements include Evidence 1.0.1; the serialized
+job requires it only when declared or explicitly pinned.
+
+The declaration validates composition and does not generate append Operations or
+check for omitted appends. Callers still supply Evidence Data and compose explicitly:
+
+```python
+with meridian.transaction("structured:orders.source"):
+    writer.commit(source_mutation, intent)
+    meridian.execute(
+        meridian.catalog("evidence").append(
+            resource="orders.audit", data=audit_data, require_atomic=True
+        )
+    )
+```
+
+Propagate required-participant failures or mark the enclosing transaction rollback-only.
+The source mutation, Evidence and intent remain provisional until its successful commit.
+
 ```ts
 import {
   durableProjectionJob,
@@ -188,10 +242,12 @@ or workspace package imports are used.
 npm ci --ignore-scripts
 npm run check
 npm pack --ignore-scripts --pack-destination /tmp
-npm install --ignore-scripts --prefix /tmp/projection-consumer /tmp/zephytiju-meridian-storage-constructs-1.1.0.tgz
+npm install --ignore-scripts --prefix /tmp/projection-consumer /tmp/zephytiju-meridian-storage-constructs-1.2.0.tgz
+npm install --ignore-scripts --prefix /tmp/projection-legacy @zephytiju/meridian-storage-constructs@1.1.0
 python3.12 -m venv /tmp/projection-runtime
 /tmp/projection-runtime/bin/pip install -r src/jobs/projection/assets/requirements.txt pytest==8.4.2
 export CONSTRUCTS_MODULE=/tmp/projection-consumer/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
+export LEGACY_CONSTRUCTS_MODULE=/tmp/projection-legacy/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
 # Supply a disposable local PostgreSQL/PostGIS DSN through the test environment.
 /tmp/projection-runtime/bin/python -m pytest tests/integration/jobs -v
 ```

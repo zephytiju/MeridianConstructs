@@ -9,4 +9,4 @@ export * from "./profiles/index.js";
 export * from "./runtime-config/index.js";
 export * from "./validation/index.js";
 
-export const version = "1.1.0" as const;
+export const version = "1.2.0" as const;

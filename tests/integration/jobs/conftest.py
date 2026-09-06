@@ -28,6 +28,7 @@ from meridian_storage.adapters.postgresql._settings import PostgreSQLSettings
 from meridian_storage.adapters.postgresql.migration import MigrationExecutor
 from meridian_storage.adapters.postgresql.projection._storage import INTENT_FIELDS
 from meridian_storage.adapters.postgresql.schema import SchemaCompiler
+from meridian_storage.evidence.catalogs import EvidenceCatalogProvider
 from meridian_storage.registry.resources import (
     NamespaceDefinition,
     ResourceBundle,
@@ -72,13 +73,21 @@ def intent(name: str = "event", **kw: Any) -> OutboxDataV1:
 
 
 @pytest.fixture
-def durable(postgresql_dsn: str) -> Iterator[Any]:
+def durable(postgresql_dsn: str, request) -> Iterator[Any]:
     binding, user, password = make_binding(postgresql_dsn)
     namespace = "ob_" + uuid4().hex[:12]
     layouts, schemas, resources = [], [], []
-    for name in ("source", "target", "outbox", "other_outbox"):
+    for name in ("source", "target", "outbox", "other_outbox", "audit", "optional_audit"):
+        catalog = "evidence" if "audit" in name else "structured"
+        profile = "append-only-evidence" if catalog == "evidence" else "relational"
         definitions = (
-            {n: (kind, nullable, False) for n, (kind, nullable) in INTENT_FIELDS.items()}
+            {
+                "id": ("uuid", False, False),
+                "kind": ("string", False, False),
+                "payload": ("json", False, False),
+            }
+            if catalog == "evidence"
+            else {n: (kind, nullable, False) for n, (kind, nullable) in INTENT_FIELDS.items()}
             if "outbox" in name
             else {
                 "id": ("string", False, False),
@@ -106,18 +115,18 @@ def durable(postgresql_dsn: str) -> Iterator[Any]:
         ]
         identity = ["eventId"] if "outbox" in name else ["id"]
         schema = SchemaDefinition(
-            SchemaRef("structured", "example", name, "1.0.0"),
-            {"semanticKind": "relational", "fields": fields, "identity": identity},
+            SchemaRef(catalog, "example", name, "1.0.0"),
+            {"semanticKind": profile, "fields": fields, "identity": identity},
         )
-        ref = ResourceRef.parse("example." + name, catalog="structured")
+        ref = ResourceRef.parse("example." + name, catalog=catalog)
         resource = ResourceDefinition(
-            ref, "relational", schema=schema.ref, required_scope=("workspace",)
+            ref, profile, schema=schema.ref, required_scope=("workspace",)
         )
         layouts.append(
             {
                 "ref": ref.canonical,
                 "table": name,
-                "profile": "relational",
+                "profile": profile,
                 "schemaFingerprint": schema.fingerprint,
                 "resourceFingerprint": resource.fingerprint,
                 "fields": fields,
@@ -140,7 +149,9 @@ def durable(postgresql_dsn: str) -> Iterator[Any]:
         "test.schemas",
         "1.0.0",
         "1.0.0",
-        namespaces=(NamespaceDefinition("structured", "example"),),
+        namespaces=tuple(
+            NamespaceDefinition(catalog, "example") for catalog in ("structured", "evidence")
+        ),
         schemas=tuple(schemas),
         resources=tuple(resources),
     )
@@ -156,7 +167,7 @@ def durable(postgresql_dsn: str) -> Iterator[Any]:
         def resolve(self, ref: Any) -> SecretValue:
             return SecretValue((user if ref.reference == "identity" else password).encode())
 
-    providers = [StructuredCatalogProvider()]
+    providers = [StructuredCatalogProvider(), EvidenceCatalogProvider()]
     config = {
         "formatVersion": "meridian-config.v1",
         "profile": "conformance",
@@ -217,6 +228,17 @@ def durable(postgresql_dsn: str) -> Iterator[Any]:
             "retry": {"maxAttempts": 1, "baseDelayMs": 0, "maxDelayMs": 0, "jitterRatio": 0},
         },
     }
+    if getattr(request, "param", None) == "separate-evidence":
+        config["bindings"].append({**binding.to_dict(), "id": "separate-evidence"})
+        config["placements"] = [
+            {
+                "id": r.ref.catalog + "-" + r.ref.name,
+                "selector": {"resources": [r.ref.to_dict()], "catalog": None, "labels": {}},
+                "bindingId": "separate-evidence" if r.ref.catalog == "evidence" else binding.id,
+                "extensions": {},
+            }
+            for r in resources
+        ]
     spec = ProjectionSpec(
         name="example-projection",
         source_catalog="structured",
@@ -228,6 +250,7 @@ def durable(postgresql_dsn: str) -> Iterator[Any]:
     )
     contexts, runtimes = [], []
     h = SimpleNamespace(spec=spec, namespace=namespace, dsn=postgresql_dsn)
+    h.Schemas, h.Secrets = Schemas, Secrets
 
     def start() -> None:
         h.meridian = Meridian(

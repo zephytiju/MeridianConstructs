@@ -59,7 +59,7 @@ def rows(h):
                 return data
 
 
-def job(h, tmp_path, batch=1, mutate=None):
+def job(h, tmp_path, batch=1, mutate=None, required_evidence=False):
     config = json.loads(json.dumps(h.child_config["config"]))
     b = config["bindings"][0]
     args = {
@@ -97,6 +97,11 @@ def job(h, tmp_path, batch=1, mutate=None):
         },
         "dependsOn": ["explicit-test-migration"],
     }
+    if required_evidence:
+        args["requiredEvidence"] = [
+            {"catalog": "evidence", "namespace": "example", "name": "audit"}
+        ]
+        args["packages"]["meridian-storage-evidence"] = "1.0.1"
     if mutate:
         mutate(args)
     result = subprocess.run(
