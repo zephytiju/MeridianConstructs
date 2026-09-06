@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -56,15 +55,15 @@ describe("one repository, one TypeScript package", () => {
     ).toBe("a7860792f5736315d68cc2295f4d206d0bbf6c735fdb73bdbbc381fb2814ae41");
   });
 
-  it("contains no active Python package or Kafka import", () => {
-    const files = execFileSync("git", ["ls-files"], { encoding: "utf8" })
-      .trim()
-      .split("\n")
-      .filter(existsSync);
-    expect(files).not.toContain("pyproject.toml");
-    expect(
-      files.filter((path) => path.startsWith("src/") && path.endsWith(".py")),
-    ).toEqual([]);
+  it("contains only the three host assets, no Python distribution or Kafka import", () => {
+    expect(existsSync("pyproject.toml")).toBe(false);
+    expect(existsSync("setup.py")).toBe(false);
+    // Include untracked files too: a git-only scan missed new assets locally.
+    expect(sourceFiles("src", ".py").sort()).toEqual([
+      "src/jobs/projection/assets/supervisor.py",
+      "src/jobs/projection/assets/versioned_target.py",
+      "src/jobs/projection/assets/worker.py",
+    ]);
     const source = sourceFiles("src")
       .map((path) => readFileSync(path, "utf8"))
       .join("\n");
@@ -74,12 +73,12 @@ describe("one repository, one TypeScript package", () => {
   });
 });
 
-function sourceFiles(directory: string): readonly string[] {
+function sourceFiles(directory: string, extension = ".ts"): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
     const path = join(directory, entry.name);
     if (entry.isDirectory()) {
-      return sourceFiles(path);
+      return sourceFiles(path, extension);
     }
-    return path.endsWith(".ts") ? [path] : [];
+    return path.endsWith(extension) ? [path] : [];
   });
 }
