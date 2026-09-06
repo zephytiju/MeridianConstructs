@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as pulumi from "@pulumi/pulumi";
+export * from "./projection/index.js";
 import {
   fingerprint,
   normalizeJson,

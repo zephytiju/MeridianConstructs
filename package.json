@@ -1,6 +1,6 @@
 {
   "name": "@zephytiju/meridian-storage-constructs",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Reusable TypeScript Pulumi constructs for Meridian deployment-time engine placement",
   "type": "module",
   "sideEffects": false,
@@ -44,7 +44,8 @@
     "NOTICE",
     "README.md",
     "contracts",
-    "dist"
+    "dist",
+    "docs/projection-jobs.md"
   ],
   "engines": {
     "node": ">=22"
@@ -70,7 +71,7 @@
   ],
   "license": "Apache-2.0",
   "scripts": {
-    "build": "node --import tsx scripts/clean-dist.ts && tsc -p tsconfig.build.json",
+    "build": "node --import tsx scripts/clean-dist.ts && tsc -p tsconfig.build.json && node --import tsx scripts/copy-job-assets.ts",
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run contracts:check && npm run test:coverage && npm run build && npm run pack:check",
     "contracts:check": "node --import tsx scripts/contracts.ts",
     "contracts:update": "node --import tsx scripts/contracts.ts --write",
