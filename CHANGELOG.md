@@ -2,6 +2,16 @@
 
 # Changelog
 
+## 1.2.0 — 2026-09-06
+
+- Declare required atomic Evidence Resources with `requiredEvidence`, validate
+  their source/outbox Binding and `atomic-evidence` support at preview and host
+  startup, and pin the compatible Evidence package.
+- Fingerprint required participants under worker contract 1.1.0 while retaining
+  evidence-free worker 1.0.0 compatibility and separately bound optional Evidence.
+- Verify three-participant commit/rollback, runtime drift and host/spec compatibility
+  alongside the existing durable projection and bounded shutdown conformance.
+
 ## 1.1.0 — 2026-09-06
 
 - Add durable projection job validation for released PostgreSQL/provider packages,

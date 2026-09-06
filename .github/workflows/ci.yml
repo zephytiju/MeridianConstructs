@@ -57,12 +57,14 @@ jobs:
           npm ci --ignore-scripts
           npm run build
           npm pack --ignore-scripts --pack-destination "${RUNNER_TEMP}"
-          npm install --ignore-scripts --prefix "${RUNNER_TEMP}/consumer" "${RUNNER_TEMP}/zephytiju-meridian-storage-constructs-1.1.0.tgz"
+          npm install --ignore-scripts --prefix "${RUNNER_TEMP}/consumer" "${RUNNER_TEMP}/zephytiju-meridian-storage-constructs-1.2.0.tgz"
+          npm install --ignore-scripts --prefix "${RUNNER_TEMP}/legacy-consumer" @zephytiju/meridian-storage-constructs@1.1.0
           python -m venv "${RUNNER_TEMP}/runtime"
           "${RUNNER_TEMP}/runtime/bin/python" -m pip install -r src/jobs/projection/assets/requirements.txt pytest==8.4.2 ruff==0.16.3
       - name: Verify actual host processes and durable state
         env:
           CONSTRUCTS_MODULE: ${{ runner.temp }}/consumer/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
+          LEGACY_CONSTRUCTS_MODULE: ${{ runner.temp }}/legacy-consumer/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
           MERIDIAN_POSTGRESQL_TEST_DSN: "host=127.0.0.1 port=5432 dbname=meridian user=meridian password=meridian"
           MERIDIAN_POSTGRESQL_ENGINE_VERSION: ${{ matrix.engine }}
         run: |
@@ -71,7 +73,7 @@ jobs:
           "${RUNNER_TEMP}/runtime/bin/ruff" format --check src/jobs/projection/assets tests/integration/jobs
           "${RUNNER_TEMP}/runtime/bin/python" -m pytest tests/integration/jobs -v --junitxml=evidence/projection-jobs.xml
           "${RUNNER_TEMP}/runtime/bin/python" -m pip freeze > evidence/released-runtime.txt
-          sha256sum "${RUNNER_TEMP}/zephytiju-meridian-storage-constructs-1.1.0.tgz" > evidence/projection-package.sha256
+          sha256sum "${RUNNER_TEMP}/zephytiju-meridian-storage-constructs-1.2.0.tgz" > evidence/projection-package.sha256
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: projection-jobs-postgresql-${{ matrix.pg }}
@@ -148,5 +150,5 @@ jobs:
           mkdir "${RUNNER_TEMP}/consumer"
           cd "${RUNNER_TEMP}/consumer"
           npm init --yes
-          npm install --ignore-scripts "${RUNNER_TEMP}/zephytiju-meridian-storage-constructs-1.1.0.tgz"
-          node --input-type=module -e 'import { catalogNames, version } from "@zephytiju/meridian-storage-constructs"; if (version !== "1.1.0" || catalogNames.join(",") !== "structured,object,cache,evidence,streaming") process.exit(1)'
+          npm install --ignore-scripts "${RUNNER_TEMP}/zephytiju-meridian-storage-constructs-1.2.0.tgz"
+          node --input-type=module -e 'import { catalogNames, version } from "@zephytiju/meridian-storage-constructs"; if (version !== "1.2.0" || catalogNames.join(",") !== "structured,object,cache,evidence,streaming") process.exit(1)'

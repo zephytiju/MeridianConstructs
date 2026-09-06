@@ -19,8 +19,10 @@ from uuid import uuid4
 from meridian_storage import Meridian, ResourceRef
 from meridian_storage.adapters.postgresql import PostgreSQLAdapterFactory, PostgreSQLOutbox
 from meridian_storage.projection import ProjectionRunner, ProjectionSpec
+from meridian_storage.registry.resources import CapabilityRequirement
 from meridian_storage.runtime.config import RuntimeConfig
 from meridian_storage.spi.adapters import AdapterCreateContext
+from meridian_storage.spi.capabilities import capability_violations
 
 EXPECTED_PACKAGES = {
     "meridian-storage-core": "1.0.1",
@@ -115,9 +117,30 @@ def validate_job(job):
     ):
         raise ValueError("projection configuration mismatch")
     cycle_budget(op["budgets"])
-    if op["packages"] != EXPECTED_PACKAGES:
+    required = op.get("requiredEvidence", [])
+    if not isinstance(required, list) or any(not isinstance(ref, str) for ref in required):
+        raise ValueError("required Evidence must be canonical Resource references")
+    evidence = [ResourceRef.parse(ref) for ref in required]
+    if (
+        required != sorted(set(required))
+        or any(
+            ref.catalog != "evidence" or ref.canonical != text
+            for ref, text in zip(evidence, required)
+        )
+        or op.get("version") != ("1.1.0" if required else "1.0.0")
+    ):
+        raise ValueError("incompatible worker version or required Evidence declaration")
+    resources = [ResourceRef.parse(ref).canonical for ref in job["resources"]]
+    expected_resources = [op[k] for k in ("source", "outbox", "target")] + required
+    if sorted(resources) != sorted(expected_resources) or len(set(resources)) != len(resources):
+        raise ValueError("job Resources do not match the declared participants")
+    packages = dict(EXPECTED_PACKAGES)
+    evidence_package = "meridian-storage-evidence"
+    if required or evidence_package in op["packages"]:
+        packages[evidence_package] = "1.0.1"
+    if op["packages"] != packages:
         raise ValueError("unsupported released projection package set")
-    for name, expected in EXPECTED_PACKAGES.items():
+    for name, expected in packages.items():
         if version(name) != expected:
             raise ValueError("installed projection package mismatch")
     return op, config
@@ -150,6 +173,33 @@ class ProjectionWorker:
                 or any(binding.adapter_id != "postgresql" for binding in selected.values())
             ):
                 raise ValueError("projection placement mismatch")
+            required = [ResourceRef.parse(ref) for ref in self.op.get("requiredEvidence", [])]
+            for ref in required:
+                # Snapshot lookup proves registration and the configured Resource pin.
+                snapshot.resource(ref)
+                if snapshot.binding_for(ref).binding_id != selected["source"].binding_id:
+                    raise ValueError("required Evidence placement mismatch")
+            for binding in selected.values():
+                # These are the authenticated manifests retained by the pinned Core runtime,
+                # not a fresh static descriptor or caller-supplied preview assertion.
+                manifest = self.meridian._capability_manifests[binding.binding_id]
+                requirements = [
+                    CapabilityRequirement("meridian.structured.put", "2.0.0", ("single-binding",)),
+                    CapabilityRequirement(
+                        "meridian.structured.query", "1.0.0", ("strong-consistency",)
+                    ),
+                    CapabilityRequirement("meridian.transaction", "1.0.0", ("atomic",)),
+                ]
+                if required and binding.binding_id == selected["source"].binding_id:
+                    requirements.append(
+                        CapabilityRequirement(
+                            "meridian.evidence.append", "1.0.0", ("atomic-evidence",)
+                        )
+                    )
+                if manifest.fingerprint != binding.capability_fingerprint or capability_violations(
+                    manifest, requirements
+                ):
+                    raise ValueError("projection runtime lacks required Operations or guarantees")
             target_resource = snapshot.resource(refs["target"])
             target_schema = snapshot.schema(
                 target_resource.schema.catalog,

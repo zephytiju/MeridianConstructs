@@ -61,6 +61,8 @@ export interface DurableProjectionJobInputV1 {
   readonly source: ResourceSelectorV1;
   readonly outbox: ResourceSelectorV1;
   readonly target: ResourceSelectorV1;
+  /** Required atomic Evidence participants; unlisted Evidence remains independent. */
+  readonly requiredEvidence?: readonly ResourceSelectorV1[];
   readonly sourceSchema: string;
   readonly targetSchema: string;
   readonly name: string;
@@ -158,6 +160,46 @@ export function durableProjectionJob(
       "Initial projection profile requires three distinct Structured Resources",
     );
   }
+  const declaration: unknown = input.requiredEvidence;
+  if (declaration !== undefined && !Array.isArray(declaration)) {
+    throw new Error("Required Evidence must be an array of Resource selectors");
+  }
+  const requiredEvidence = [...(input.requiredEvidence ?? [])].sort((a, b) => {
+    const left = resourceSelectorKey(a);
+    const right = resourceSelectorKey(b);
+    return left < right ? -1 : left > right ? 1 : 0;
+  });
+  const evidenceKeys = requiredEvidence.map(resourceSelectorKey);
+  if (
+    requiredEvidence.some((r) => r.catalog !== "evidence") ||
+    new Set(evidenceKeys).size !== evidenceKeys.length
+  ) {
+    throw new Error("Required Evidence must name distinct Evidence Resources");
+  }
+  if (
+    requiredEvidence.length > 0 &&
+    array(object(config.catalogs).providers).filter(
+      (p) => object(p).name === "evidence",
+    ).length !== 1
+  ) {
+    throw new Error("Required Evidence needs a registered Evidence Catalog");
+  }
+  const packages: Record<string, string> = { ...projectionPackagePins };
+  for (const [name, version] of Object.entries(projectionPackagePins)) {
+    if (input.packages[name] !== version)
+      throw new Error("Projection requires exact released package pins");
+  }
+  const evidencePackage = "meridian-storage-evidence";
+  if (
+    requiredEvidence.length > 0 ||
+    Object.hasOwn(input.packages, evidencePackage)
+  ) {
+    if (input.packages[evidencePackage] !== "1.0.1")
+      throw new Error(
+        "Projection requires the compatible Evidence package pin",
+      );
+    packages[evidencePackage] = "1.0.1";
+  }
   for (const [schema, resource] of [
     [input.sourceSchema, input.source],
     [input.targetSchema, input.target],
@@ -174,7 +216,7 @@ export function durableProjectionJob(
   const pins = array(object(config.resources).pins);
   const bindings = array(config.bindings).map(object);
   const placements = array(config.placements).map(object);
-  const resolved = roles.map((role) => {
+  const resolved = [...roles, ...requiredEvidence].map((role) => {
     const ref = resourceSelectorKey(role);
     if (pins.filter((p) => key(object(p).ref!) === ref).length !== 1) {
       throw new Error(
@@ -200,6 +242,11 @@ export function durableProjectionJob(
   if (resolved[0]!.id !== resolved[1]!.id) {
     throw new Error(
       "Source and required intent must resolve to the same Binding",
+    );
+  }
+  if (resolved.slice(3).some((binding) => binding.id !== resolved[0]!.id)) {
+    throw new Error(
+      "Required Evidence must share the source and intent Binding",
     );
   }
   const secretRefs = new Map<string, OpaqueSecretRef>();
@@ -229,11 +276,19 @@ export function durableProjectionJob(
     const operations = array(object(manifest.descriptor).capabilities).map(
       object,
     );
-    for (const [contract, version, guarantee] of [
+    const requirements = [
       ["meridian.structured.put", "2.0.0", "single-binding"],
       ["meridian.structured.query", "1.0.0", "strong-consistency"],
       ["meridian.transaction", "1.0.0", "atomic"],
-    ]) {
+    ];
+    if (requiredEvidence.length > 0 && binding.id === resolved[0]!.id) {
+      requirements.push([
+        "meridian.evidence.append",
+        "1.0.0",
+        "atomic-evidence",
+      ]);
+    }
+    for (const [contract, version, guarantee] of requirements) {
       if (
         !array(manifest.availableOperationContracts).includes(contract!) ||
         !operations.some(
@@ -247,11 +302,6 @@ export function durableProjectionJob(
           "Projection Binding lacks required released Operations or guarantees",
         );
       }
-    }
-    const packages = input.packages;
-    for (const [name, version] of Object.entries(projectionPackagePins)) {
-      if (packages[name] !== version)
-        throw new Error("Projection requires exact released package pins");
     }
     for (const ref of [
       binding.identityRef,
@@ -268,12 +318,15 @@ export function durableProjectionJob(
   return createLifecycleJobSpec({
     kind: "projection",
     image: input.image,
-    resources: roles,
+    resources: [...roles, ...requiredEvidence],
     secretRefs: [...secretRefs.values()],
     dependsOn: input.dependsOn,
     operation: {
       contract: "meridian.projection.worker",
-      version: "1.0.0",
+      version: requiredEvidence.length > 0 ? "1.1.0" : "1.0.0",
+      ...(requiredEvidence.length > 0
+        ? { requiredEvidence: evidenceKeys }
+        : {}),
       name: input.name,
       source: keys[0]!,
       outbox: keys[1]!,
@@ -287,7 +340,7 @@ export function durableProjectionJob(
       sourceBindingId: resolved[0]!.id!,
       targetBindingId: resolved[2]!.id!,
       configFingerprint: fingerprint(config),
-      packages: projectionPackagePins,
+      packages,
       budgets: {
         ...input.budgets,
         calls: { ...input.budgets.calls },

@@ -63,7 +63,9 @@ void engine;
 See [`examples/external.ts`](examples/external.ts) for a complete external-Engine deployment.
 
 For the released durable PostgreSQL projection profile, see
-[`docs/projection-jobs.md`](docs/projection-jobs.md). Version 1.1.0 adds validated
+[`docs/projection-jobs.md`](docs/projection-jobs.md). Version 1.2.0 adds required
+atomic Evidence declarations, compatible package pins and host startup validation.
+Version 1.1.0 added validated
 worker jobs and caller-owned host templates with bounded drain/termination and
 version-addressed target/read wiring, while preserving the existing rebuild helper.
 

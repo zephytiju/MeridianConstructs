@@ -118,6 +118,183 @@ function input(): DurableProjectionJobInputV1 {
   };
 }
 
+function withEvidence(): DurableProjectionJobInputV1 {
+  const args = input();
+  const evidence = ["audit", "lineage"].map((name) => ({
+    catalog: "evidence" as const,
+    namespace: "orders",
+    name,
+  }));
+  const config = args.runtimeConfig as unknown as FixtureConfig;
+  for (const ref of evidence) {
+    config.resources.pins.push({
+      ref,
+      providerId: "orders-schema",
+      requiredFingerprint: fingerprintA,
+    });
+    config.placements.push({
+      id: ref.name,
+      selector: { resources: [ref], catalog: null, labels: {} },
+      bindingId: "orders-db",
+      extensions: {},
+    });
+  }
+  return {
+    ...args,
+    requiredEvidence: evidence,
+    packages: { ...args.packages, "meridian-storage-evidence": "1.0.1" },
+  };
+}
+
+describe("required atomic Evidence composition", () => {
+  it.each([null, {}, "evidence:orders.audit"])(
+    "rejects a non-array declaration %s",
+    (value) => {
+      expect(() =>
+        durableProjectionJob({
+          ...input(),
+          requiredEvidence: value as unknown as NonNullable<
+            DurableProjectionJobInputV1["requiredEvidence"]
+          >,
+        }),
+      ).toThrow(/array/);
+    },
+  );
+  it("preserves empty declarations and validates explicitly supplied Evidence pins", () => {
+    const args = input();
+    expect(durableProjectionJob({ ...args, requiredEvidence: [] })).toEqual(
+      durableProjectionJob(args),
+    );
+    const job = durableProjectionJob({
+      ...args,
+      packages: { ...args.packages, "meridian-storage-evidence": "1.0.1" },
+    });
+    expect(job.operation.version).toBe("1.0.0");
+    expect(job.operation.packages).toHaveProperty(
+      "meridian-storage-evidence",
+      "1.0.1",
+    );
+    expect(() =>
+      durableProjectionJob({
+        ...args,
+        packages: { ...args.packages, "meridian-storage-evidence": "0.0.0" },
+      }),
+    ).toThrow(/Evidence package/);
+  });
+
+  it("fingerprints sorted canonical participants and the complete package set", () => {
+    const args = withEvidence();
+    const job = durableProjectionJob(args);
+    expect(job.operation).toMatchObject({
+      version: "1.1.0",
+      requiredEvidence: ["evidence:orders.audit", "evidence:orders.lineage"],
+      packages: {
+        ...projectionPackagePins,
+        "meridian-storage-evidence": "1.0.1",
+      },
+    });
+    expect(job.resources).toHaveLength(5);
+    expect(
+      durableProjectionJob({
+        ...args,
+        requiredEvidence: [...args.requiredEvidence!].reverse(),
+      }),
+    ).toEqual(job);
+    expect(
+      durableProjectionJob({
+        ...args,
+        requiredEvidence: [args.requiredEvidence![0]!],
+      }).specFingerprint,
+    ).not.toBe(job.specFingerprint);
+  });
+
+  it("leaves optional unlisted Evidence on its independent Binding", () => {
+    const args = withEvidence();
+    const config = args.runtimeConfig as unknown as FixtureConfig;
+    config.bindings.push({ ...config.bindings[0]!, id: "optional-evidence" });
+    config.placements.at(-1)!.bindingId = "optional-evidence";
+    const job = durableProjectionJob({
+      ...args,
+      requiredEvidence: [args.requiredEvidence![0]!],
+    });
+    expect(job.operation.requiredEvidence).toEqual(["evidence:orders.audit"]);
+    expect(job.resources).toHaveLength(4);
+  });
+
+  it.each([
+    "duplicate",
+    "wrong-catalog",
+    "missing-catalog",
+    "missing-pin",
+    "duplicate-pin",
+    "missing-placement",
+    "duplicate-placement",
+    "cross-binding",
+    "missing-package",
+    "wrong-package",
+    "missing-operation",
+    "wrong-version",
+    "missing-atomic-evidence",
+    "missing-transaction-atomic",
+  ])("rejects %s at preview", (fault) => {
+    const args = withEvidence();
+    const config = args.runtimeConfig as unknown as FixtureConfig;
+    const requiredEvidence = [...args.requiredEvidence!];
+    const packages = { ...args.packages };
+    if (fault === "duplicate") requiredEvidence.push(requiredEvidence[0]!);
+    if (fault === "wrong-catalog") requiredEvidence[0] = args.source;
+    if (fault === "missing-catalog")
+      (
+        args.runtimeConfig.catalogs as unknown as { providers: unknown[] }
+      ).providers = [];
+    if (fault === "missing-pin") config.resources.pins.pop();
+    if (fault === "duplicate-pin")
+      config.resources.pins.push(config.resources.pins.at(-1));
+    if (fault === "missing-placement") config.placements.pop();
+    if (fault === "duplicate-placement")
+      config.placements.push({ ...config.placements.at(-1)!, id: "duplicate" });
+    if (fault === "cross-binding") {
+      config.bindings.push({
+        ...config.bindings[0]!,
+        id: "same-database-other-binding",
+      });
+      config.placements.at(-1)!.bindingId = "same-database-other-binding";
+    }
+    if (fault === "missing-package")
+      delete packages["meridian-storage-evidence"];
+    if (fault === "wrong-package")
+      packages["meridian-storage-evidence"] = "0.0.0";
+    const reduced = structuredClone(manifest) as unknown as FixtureManifest;
+    const contract =
+      fault === "missing-transaction-atomic"
+        ? "meridian.transaction"
+        : "meridian.evidence.append";
+    const op = reduced.descriptor.capabilities.find(
+      (cap) => cap.operationContract === contract,
+    )!;
+    if (fault === "missing-operation")
+      reduced.availableOperationContracts =
+        reduced.availableOperationContracts.filter((c) => c !== contract);
+    if (fault === "wrong-version") op.operationVersions = ["0.0.0"];
+    if (
+      fault === "missing-atomic-evidence" ||
+      fault === "missing-transaction-atomic"
+    )
+      op.guarantees = op.guarantees.filter(
+        (g) => !["atomic", "atomic-evidence"].includes(g),
+      );
+    config.bindings[0]!.requiredCapabilityFingerprint = fingerprint(reduced);
+    expect(() =>
+      durableProjectionJob({
+        ...args,
+        packages,
+        requiredEvidence,
+        manifests: { "orders-db": reduced as unknown as JsonObject },
+      }),
+    ).toThrow();
+  });
+});
+
 describe("durable projection deployment", () => {
   it("pins the provider, resources, references, whole-cycle budget and read composition", () => {
     const args = input();
