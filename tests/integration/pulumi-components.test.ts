@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import * as pulumi from "@pulumi/pulumi";
+import { readFileSync } from "node:fs";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   ExternalEngine,
   getEngineProfile,
+  fingerprint,
+  type JsonObject,
   engineProfiles,
   ManagedEngine,
   MeridianDeployment,
@@ -155,6 +158,67 @@ describe("all exported Engine selections through Pulumi components", () => {
 });
 
 describe("Pulumi component integration", () => {
+  for (const mode of ["managed", "external"] as const) {
+    it(`${mode} validates and forwards the selected public manifest before provisioning`, async () => {
+      const manifest = JSON.parse(
+        readFileSync(
+          "tests/fixtures/released-capabilities/postgresql-2.3.1.json",
+          "utf8",
+        ),
+      ) as JsonObject;
+      const binding = {
+        ...bindingArgs("postgresql-postgis-local-single-primary"),
+        capabilityManifest: manifest,
+        requiredCapabilityFingerprint: fingerprint(manifest),
+        engineVersion: "17-postgis-3.5",
+      };
+      let calls = 0;
+      const create = (valid: boolean) => {
+        const selected = {
+          ...binding,
+          requiredCapabilityFingerprint: valid
+            ? fingerprint(manifest)
+            : fingerprintA,
+        };
+        const name = `manifest-${mode}-${String(valid)}`;
+        return mode === "external"
+          ? new ExternalEngine(name, {
+              binding: selected,
+              connection: connectionInputs(),
+            })
+          : new ManagedEngine(name, {
+              binding: selected,
+              provider: new TestProvider(`${name}-provider`),
+              provisioner: {
+                provision() {
+                  calls++;
+                  return connectionInputs();
+                },
+              },
+              request: {
+                target: "isolated-conformance",
+                storage: { bytes: 1024 },
+                networkPolicy: {},
+                workloadIdentity: connectionInputs().identityRef,
+                tls: { ...connectionInputs().tls, clientCertificateRef: null },
+                acl: binding.acl,
+                observability: binding.observability,
+              },
+            });
+      };
+      expect(() => create(false)).toThrow(/fingerprint/);
+      expect(calls).toBe(0);
+      const engine = create(true);
+      expect((await resolveOutput(engine.binding)).capabilityManifest).toEqual(
+        manifest,
+      );
+      expect(
+        engine.profile.operations["meridian.structured.put"]!.versions,
+      ).toEqual(["2.0.0"]);
+      expect(calls).toBe(mode === "managed" ? 1 : 0);
+    });
+  }
+
   it("renders an external Engine into typed runtime and logical capability outputs", async () => {
     const engine = new ExternalEngine("orders-external", {
       binding: bindingArgs("postgresql-postgis-local-single-primary"),

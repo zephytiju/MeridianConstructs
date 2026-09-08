@@ -21,6 +21,7 @@ export interface EngineProfileV1 {
   readonly id: string;
   readonly adapterId: string;
   readonly adapterPackage: string;
+  /** Historical package recipe, independent of the documented capability baseline. */
   readonly adapterVersion: string;
   readonly adapterContract: string;
   readonly engineProfile: string;
@@ -72,10 +73,11 @@ function capability(
   contract: string,
   guarantees: readonly string[] = [],
   limits: Readonly<Record<string, number>> = {},
+  versions: readonly string[] = ["1.0.0"],
 ): OperationCapabilityV1 {
   const body = {
     contract,
-    versions: Object.freeze(["1.0.0"]),
+    versions: Object.freeze([...versions].sort()),
     guarantees: Object.freeze([...guarantees].sort()),
     limits: Object.freeze(
       Object.fromEntries(
@@ -113,33 +115,52 @@ for (const method of [
   const contract = `meridian.structured.${method}`;
   const guarantees = ["delete", "patch", "put"].includes(method)
     ? postgresMutation
-    : ["create_resource", "publish_schema"].includes(method)
-      ? [...postgresCommon, "external-migration"]
-      : method === "traverse"
-        ? [...postgresCommon, "bounded-traversal", "relation-collections"]
-        : postgresCommon;
-  postgresOperations[contract] = capability(contract, guarantees, {
-    maxMembershipNames: 10_000,
-    maxPageSize: 500,
-    maxRelationResources: 32,
-    maxTraversalDepth: 8,
-    pageSize: 500,
-  });
+    : method === "publish_schema"
+      ? [
+          ...postgresCommon,
+          "durable-metadata",
+          "immutable-schema-version",
+          "no-runtime-ddl",
+        ]
+      : method === "create_resource"
+        ? [...postgresCommon, "external-migration"]
+        : method === "traverse"
+          ? [...postgresCommon, "bounded-traversal", "relation-collections"]
+          : postgresCommon;
+  postgresOperations[contract] = capability(
+    contract,
+    guarantees,
+    {
+      maxMembershipNames: 10_000,
+      maxPageSize: 500,
+      maxRelationResources: 32,
+      maxTraversalDepth: 8,
+      pageSize: 500,
+    },
+    method === "put" ? ["2.0.0"] : ["1.0.0"],
+  );
 }
 postgresOperations["meridian.evidence.append"] = capability(
   "meridian.evidence.append",
   [
     "append-only",
+    "atomic-evidence",
     "bound-parameters",
     "read-committed",
     "scope-injected",
+    "scope-isolation",
     "transactional-with-structured",
   ],
   { maxPageSize: 500 },
 );
 postgresOperations["meridian.evidence.query"] = capability(
   "meridian.evidence.query",
-  ["bound-parameters", "scope-injected", "strong-consistency"],
+  [
+    "bound-parameters",
+    "scope-injected",
+    "scope-isolation",
+    "strong-consistency",
+  ],
   { maxPageSize: 500 },
 );
 postgresOperations["meridian.transaction"] = capability(
@@ -770,7 +791,7 @@ export function compatibilityContract(): CompatibilityContractV2 {
       engineAdapters: 24,
       hld: 62,
       kafkaAdapter: 6,
-      meridianConstructs: 112,
+      meridianConstructs: 114,
     }),
     catalogRegistry: [
       "structured",

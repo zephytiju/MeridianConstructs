@@ -226,6 +226,8 @@ export interface BindingSpecV1 {
   readonly id: string;
   readonly profileId: string;
   readonly requiredCapabilityFingerprint: string;
+  /** Selected public Adapter manifest, pinned by requiredCapabilityFingerprint. Planning-only. */
+  readonly capabilityManifest?: JsonObject;
   readonly connection: EngineConnectionV1;
   readonly mode: DeploymentMode;
   readonly topology: Topology;

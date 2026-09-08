@@ -30,6 +30,7 @@ import {
   type ResourceSelectorV1,
 } from "../contracts/index.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
+import { selectedCapabilityProfile } from "../profiles/manifest.js";
 import {
   getEngineProfile,
   validateEngineVersion,
@@ -214,7 +215,10 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
   const bindingsById = new Map(bindings.map((item) => [item.id, item]));
   const profilesByBinding = new Map<string, EngineProfileV1>();
   for (const binding of bindings) {
-    profilesByBinding.set(binding.id, validateBinding(binding));
+    profilesByBinding.set(
+      binding.id,
+      selectedCapabilityProfile(binding, validateBinding(binding)),
+    );
   }
 
   const placements = uniqueBy(

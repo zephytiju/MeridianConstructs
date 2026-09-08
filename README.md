@@ -134,3 +134,7 @@ Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 Deployment release selection and the exhaustive gate inventory are documented in
 [release validation](docs/release-validation.md). Untested combinations remain unverified.
+
+Version 1.5.0 aligns Operation planning with released Adapter capabilities.
+See [selected manifests and migration](docs/operation-capabilities.md) for explicit
+manifest inputs, corrected PostgreSQL baselines and the complete family inventory.

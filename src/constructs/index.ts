@@ -38,6 +38,7 @@ import {
   type ValidationPolicyV1,
 } from "../contracts/index.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
+import { selectedCapabilityProfile } from "../profiles/manifest.js";
 import {
   getEngineProfile,
   validateEngineVersion,
@@ -102,6 +103,7 @@ export interface EngineBindingArgsV1 {
   readonly bindingId: string;
   readonly profileId: string;
   readonly requiredCapabilityFingerprint: string;
+  readonly capabilityManifest?: JsonObject;
   readonly topology?: Topology;
   readonly engineVersion?: string;
   readonly client?: ClientPolicyV1;
@@ -222,7 +224,10 @@ export abstract class EngineBinding extends pulumi.ComponentResource {
     );
     validateClientPolicy(args.client ?? defaultClientPolicy);
     validateBindingMetadata(args);
-    this.profile = getEngineProfile(args.profileId);
+    this.profile = selectedCapabilityProfile(
+      { ...args, id: args.bindingId, engineVersion },
+      getEngineProfile(args.profileId),
+    );
     validateStaticSelection(this.profile, mode, topology, engineVersion);
     validatePackagePins(
       args.compatibilityPins ?? {},
@@ -289,6 +294,9 @@ export abstract class EngineBinding extends pulumi.ComponentResource {
         id: args.bindingId,
         profileId: args.profileId,
         requiredCapabilityFingerprint: args.requiredCapabilityFingerprint,
+        ...(args.capabilityManifest === undefined
+          ? {}
+          : { capabilityManifest: args.capabilityManifest }),
         connection: engineConnection,
         mode,
         topology,
@@ -379,15 +387,24 @@ export class ManagedEngine extends EngineBinding {
       engineVersion,
     };
     validateManagedRequest(profile, args.binding, request);
+    const selectedProfile = selectedCapabilityProfile(
+      { ...args.binding, id: args.binding.bindingId, engineVersion },
+      profile,
+    );
     super(
       componentType.managedEngine,
       name,
       args.binding,
       (parent) => {
-        const connection = args.provisioner.provision(name, profile, request, {
-          parent,
-          provider: args.provider,
-        });
+        const connection = args.provisioner.provision(
+          name,
+          selectedProfile,
+          request,
+          {
+            parent,
+            provider: args.provider,
+          },
+        );
         if (
           canonicalJson(connection.identityRef) !==
             canonicalJson(request.workloadIdentity) ||
