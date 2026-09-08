@@ -31,6 +31,7 @@ import {
 } from "../contracts/index.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
 import { selectedCapabilityProfile } from "../profiles/manifest.js";
+import { configuredCapabilityProfile } from "../profiles/settings.js";
 import {
   getEngineProfile,
   validateEngineVersion,
@@ -217,7 +218,11 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
   for (const binding of bindings) {
     profilesByBinding.set(
       binding.id,
-      selectedCapabilityProfile(binding, validateBinding(binding)),
+      configuredCapabilityProfile(
+        selectedCapabilityProfile(binding, validateBinding(binding)),
+        binding.connection.settings,
+        binding.capabilityManifest !== undefined,
+      ),
     );
   }
 
@@ -574,11 +579,12 @@ function validateCapabilities(
         `Profile ${profile.id} lacks ${missing.join(", ")}`,
       );
     }
-    const limits = {
-      ...requirement.limits.values,
-      ...(operation.limits ?? {}),
-    };
-    for (const [name, required] of Object.entries(limits)) {
+    // Both scopes declare minimum requirements; neither may weaken the other.
+    const limits = [
+      ...Object.entries(requirement.limits.values),
+      ...Object.entries(operation.limits ?? {}),
+    ];
+    for (const [name, required] of limits) {
       const available = provided.limits[name];
       if (available === undefined || required > available) {
         throw new MeridianConstructError(

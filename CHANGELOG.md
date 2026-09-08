@@ -2,6 +2,17 @@
 
 # Changelog
 
+## 1.5.1
+
+- Compare deployment-selected ClickHouse limits even when a Binding omits the new
+  manifest input; reject one-above requirements instead of using bundled defaults.
+- Apply the same released configuration mappings to OpenSearch, Valkey, S3 and OCI
+  limit settings. Explicit manifests never gain missing or larger capabilities.
+- Enforce both Resource and Operation minimum limits when the same key appears in
+  both scopes, so a lower Operation minimum cannot hide a Resource requirement.
+- Add public-artifact tuned-limit parity tests and preserve the expanded independent
+  2,454-case audit, including all 978 negative controls.
+
 ## 1.5.0
 
 - Align PostgreSQL planning with public 2.3.1 Operation versions, required Evidence

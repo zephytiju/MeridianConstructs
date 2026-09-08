@@ -7,7 +7,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from export_contracts import manifests
+from export_contracts import manifests, configured_manifests
 from meridian_storage.registry import CapabilityRequirement
 from meridian_storage.runtime.config import RuntimeConfig
 from meridian_storage.spi import (
@@ -174,6 +174,71 @@ def spec(profile, selected, mode, topology, contract, version, guarantees=(), li
 
 
 DEFAULTS = render({"command": "defaults"})
+
+
+def test_nondefault_limits_agree_with_public_adapters_with_and_without_manifest():
+    inputs, expected, labels = [], [], []
+    profiles = render({"command": "profiles"})
+    for selected in configured_manifests():
+        manifest = core_manifest(selected["manifest"])
+        profile = profiles[manifest.engine_profile]
+        for mode in profile["allowedModes"]:
+            for topology in profile["allowedTopologies"]:
+                for supplied in (False, True):
+                    for cap in manifest.descriptor.capabilities:
+                        for key, limit in cap.limits.items():
+                            for minimum in (limit, limit + 1):
+                                op_version = cap.operation_versions[0]
+                                value = spec(
+                                    profile,
+                                    selected,
+                                    mode,
+                                    topology,
+                                    cap.operation_contract,
+                                    op_version,
+                                    limits={key: minimum},
+                                )
+                                value["bindings"][0]["connection"]["settings"] = selected[
+                                    "settings"
+                                ]
+                                if not supplied:
+                                    del value["bindings"][0]["capabilityManifest"]
+                                inputs.append(value)
+                                expected.append(
+                                    not capability_violations(
+                                        manifest,
+                                        (
+                                            CapabilityRequirement(
+                                                cap.operation_contract,
+                                                op_version,
+                                                minimum_limits={key: minimum},
+                                            ),
+                                        ),
+                                    )
+                                )
+                                labels.append(
+                                    [
+                                        manifest.engine_profile,
+                                        mode,
+                                        topology,
+                                        supplied,
+                                        cap.operation_contract,
+                                        key,
+                                        minimum,
+                                    ]
+                                )
+    outputs = render({"command": "batch", "specs": inputs})
+    for label, want, result in zip(labels, expected, outputs, strict=True):
+        assert result["accepted"] == want, (label, result)
+        if want:
+            RuntimeConfig.from_mapping(result["config"])
+    out = Path(
+        os.environ.get("MERIDIAN_ACCEPTANCE_EVIDENCE_DIR", "/tmp/meridian-contract-evidence")
+    )
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "configured-limits.json").write_text(
+        json.dumps({"cases": len(labels), "mismatches": 0, "labels": labels}, indent=2) + "\n"
+    )
 
 
 def test_public_artifacts_match_the_recorded_inventory_and_core_schema():
