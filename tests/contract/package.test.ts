@@ -22,7 +22,7 @@ describe("one repository, one TypeScript package", () => {
     };
     expect(packageJson).toMatchObject({
       name: "@zephytiju/meridian-storage-constructs",
-      version: "1.5.1",
+      version: "1.6.0",
       license: "Apache-2.0",
       publishConfig: { access: "public", provenance: true },
     });

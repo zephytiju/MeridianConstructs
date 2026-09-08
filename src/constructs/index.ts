@@ -74,6 +74,17 @@ export type {
   OtelSignal,
   TelemetryCapabilityInputV1,
 } from "./otel.js";
+export {
+  createClickHouseTelemetryPlan,
+  telemetryFields,
+} from "./otel/exporters/clickhouse/index.js";
+export type {
+  ClickHouseTelemetryInput,
+  ClickHouseTelemetryPlan,
+  TelemetryField,
+  TelemetryFieldKind,
+  TelemetryRecordProfile,
+} from "./otel/exporters/clickhouse/index.js";
 
 export interface OpaqueReferenceInputsV1 {
   readonly provider: string;
