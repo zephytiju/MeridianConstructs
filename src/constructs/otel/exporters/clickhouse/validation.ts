@@ -22,6 +22,12 @@ export function envelopeValidation(maxBytes: number): JsonObject {
           `flatten(${wire}, depth=48)`,
           reject(`Len(${wire}) == 0 or Len(${wire}) > 10000`),
           reject(invalidFields(wire)),
+          // Detect repeated KeyValue keys at every nesting level in linear
+          // passes. Distinct parent paths remain distinct; the original Body
+          // and its typed values are never changed by this validation copy.
+          `set(log.cache["key_identity"], MapKeys(${wire}, (k, v) => When(() => IsMatch(k, "[.]key$"), Concat([k, "=", String(v)], ""), k)))`,
+          `replace_all_patterns(log.cache["key_identity"], "key", "^(.+?)[.][0-9]+[.]key=", "$1.__key__=")`,
+          reject(`Len(log.cache["key_identity"]) != Len(${wire})`),
         ],
       },
     ],

@@ -100,6 +100,20 @@ def invalid_payloads():
         lambda p: metric(p).update(unit="x" * 257),
     )
     add("severity-over-v1-limit", "logs", "logs", lambda p: log(p).update(severityText="x" * 33))
+    duplicates = [attr("duplicate", "intValue", "1"), attr("duplicate", "stringValue", "1")]
+    add("duplicate-attributes", "logs", "logs", lambda p: log(p)["attributes"].extend(duplicates))
+    add(
+        "duplicate-link-attributes",
+        "traces",
+        "traces",
+        lambda p: span(p)["links"][0]["attributes"].extend(duplicates),
+    )
+    add(
+        "duplicate-body-map-keys",
+        "logs",
+        "logs",
+        lambda p: log(p).update(body={"kvlistValue": {"values": duplicates}}),
+    )
     nested = {"stringValue": "too-deep"}
     for _ in range(13):
         nested = {"arrayValue": {"values": [nested]}}
@@ -284,9 +298,12 @@ def no_change_and_pins(client, states, runtimes, settings, root, ca):
     return report
 
 
-def durability(send, client, states, runtimes, settings, command, run, ready, wait):
+def durability(send, client, states, runtimes, settings, command, run, ready, wait, queue_size):
     report = []
     for index, mode in enumerate(states):
+        # Plugin shutdown may enqueue another collection after its first public
+        # read becomes visible. Start the fault with measured free capacity.
+        wait("empty persistent queue before outage " + mode, lambda: queue_size(mode) == 0, 120)
         run(command + ["stop", "-t", "2", "backend"])
         accepted = []
         rejected = []
@@ -299,7 +316,12 @@ def durability(send, client, states, runtimes, settings, command, run, ready, wa
             responses.append(response)
             assert response["status"] in (200, 503), response
             (accepted if response["status"] == 200 else rejected).append(name)
-        assert accepted and rejected
+        assert accepted and rejected, {
+            "mode": mode,
+            "accepted": accepted,
+            "rejected": rejected,
+            "responses": responses,
+        }
         run(command + ["kill", "-s", "SIGKILL", mode])
         run(command + ["start", "backend"])
         wait("backend recovery", ready)
@@ -329,6 +351,7 @@ def durability(send, client, states, runtimes, settings, command, run, ready, wa
                 "recoveredPublicNames": names,
                 "responses": responses,
                 "allAcknowledgedSurvivedSIGKILL": True,
+                "queueEmptyBeforeOutage": True,
             }
         )
     return report

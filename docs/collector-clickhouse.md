@@ -108,7 +108,7 @@ The renderer preserves the selected Adapter batch limits. Every normalized batch
 its conservative byte expansion bound must fit `maxBatchBytes`. `maxEnvelopeBytes` bounds both
 OTLP HTTP input and the expanded JSON relay, including protobuf input. Validation also bounds
 attributes to 128 per map, AnyValue nesting to 12, flattened leaves to 10,000 and nesting to 48.
-Malformed records, unsupported signals, invalid source scope and nonfinite numbers fail before
+Duplicate attribute/map keys, malformed records, unsupported signals, invalid source scope and nonfinite numbers fail before
 persistent acknowledgement. A protobuf request may fit the receiver but exceed the expanded
 JSON budget and be rejected; size the caller's batches accordingly.
 
@@ -118,7 +118,7 @@ OTLP response acknowledges durable queue acceptance, not completed backend inser
 backend outage, saturation returns HTTP 503; callers retry rejected requests. A SIGKILL must
 retain acknowledged requests when the queue volume is intact. Monitor queue usage and exporter
 failures, keep the selected mapping installed until its queues drain, and rotate credentials
-through the owning deployment. Disk loss is outside the local queue durability guarantee.
+through the owning deployment. The official [internal telemetry endpoint](https://opentelemetry.io/docs/collector/internal-telemetry/) exposes queue size/capacity for drain and saturation checks. Disk loss is outside the local queue durability guarantee.
 
 ## Migration lifecycle and conformance
 

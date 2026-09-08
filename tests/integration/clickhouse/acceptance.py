@@ -270,6 +270,32 @@ with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
             )
             return json.loads(run([os.sys.executable, "-c", local], input=json.dumps(request)))
 
+        def queue_size(mode):
+            container = run(command + ["ps", "-q", mode]).strip()
+            probe = """import json,re,urllib.request
+text=urllib.request.urlopen('http://127.0.0.1:8888/metrics',timeout=3).read().decode()
+rows=[line for line in text.splitlines() if line.startswith('otelcol_exporter_queue_size') and 'exporter="clickhouse"' in line]
+assert len(rows)==1,rows
+print(json.dumps(float(rows[0].split()[-1])))
+"""
+            return json.loads(
+                run(
+                    [
+                        "docker",
+                        "run",
+                        "--rm",
+                        "--label",
+                        "task=t100656",
+                        "--network",
+                        "container:" + container,
+                        PYTHON,
+                        "python",
+                        "-c",
+                        probe,
+                    ]
+                )
+            )
+
         for mode in ("gateway", "sidecar"):
             wait(mode, lambda: send(mode, "logs", payload("logs"))["status"] == 200)
             assert send(mode, "logs", payload("logs"), False)["status"] == 0
@@ -498,7 +524,7 @@ with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
             outcome["actualOtlpExporters"] = True
             REPORT.setdefault("realPlugin", []).append(outcome)
         REPORT["durability"] = durability(
-            send, client, STATES, RUNTIMES, SETTINGS, command, run, ready, wait
+            send, client, STATES, RUNTIMES, SETTINGS, command, run, ready, wait, queue_size
         )
         try:
             wrong = clickhouse_connect.get_client(
