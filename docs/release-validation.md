@@ -81,14 +81,18 @@ The historical regression CI matrix tests the packed npm host against PostgreSQL
 and PostgreSQL 17/PostGIS 3.5, independently of PostgreSQL Adapter 2.1.0/2.1.1.
 The public dependency closure is Core 1.0.1, Semantics 2.0.0, Query 1.0.2,
 Projection 1.0.2 and Evidence 1.0.1; installation uses normal dependency resolution
-and `pip check`, with no sibling source or dependency overrides. Core 1.1.0 is
-consumed separately as the shared fixture artifact because historical runtime
-dependencies still require Core 1.0.1. This is an explicit tested combination,
-not a claim of complete upgraded-family closure. Final release acceptance must
-additionally use the repaired publicly released PostgreSQL/Projection/Core closure
-with ordinary installation and no dependency overrides. Until those owning releases
-are public and their packed-host matrix passes, this task remains incomplete and
-no release publication is authorized by acceptance.
+and `pip check`, with no sibling source or dependency overrides. The historical
+runtime dependencies still require Core 1.0.1.
+
+The additional final-release matrix tests PostgreSQL Adapter 2.2.0 against both
+Engine images using the independently selected public closure in
+`tests/integration/jobs/requirements-repaired.txt`: Core 1.1.0, Semantics 2.0.1,
+Query 1.0.3, Projection 1.0.3 and Evidence 1.0.2. Both matrices use ordinary public
+installation and `pip check`, without dependency overrides. The tests compare
+installed versions with the selected requirements before exercising the packed
+host. These six combinations establish the recorded PostgreSQL acceptance only;
+they do not claim complete upgraded-family conformance. Historical bundled
+requirements and exported example recipes remain labeled, replaceable examples.
 
 The PostgreSQL images are selected by immutable digest in CI:
 

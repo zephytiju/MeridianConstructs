@@ -11,7 +11,8 @@
 - Separate package-lock extensions from Core runtime compatibility expectations;
   version generated release metadata as V2 while preserving the historical V1 file.
 - Consume public Core 1.1.0 golden fixtures and verify packed hosts against PostgreSQL
-  16/17 with independently selected public PostgreSQL Adapter 2.1.0/2.1.1.
+  16/17 with independently selected public PostgreSQL Adapter 2.1.0/2.1.1 and
+  the repaired Core 1.1.0 / PostgreSQL 2.2.0 / Projection 1.0.3 public closure.
 
 ## 1.2.0 — 2026-09-06
 

@@ -11,7 +11,7 @@ from uuid import uuid4
 
 import pytest
 from conftest import ctx, intent
-from test_projection_jobs import job, write
+from test_projection_jobs import EVIDENCE_VERSION, job, write
 
 from meridian_storage.errors import NotFoundError
 from meridian_storage import MeridianError
@@ -224,7 +224,7 @@ def test_optional_evidence_can_start_separately_but_required_cannot(durable, tmp
 
     # Simulate a spec/config placement change after preview, with coherent fingerprints.
     spec["operation"].update(version="1.1.0", requiredEvidence=["evidence:example.audit"])
-    spec["operation"]["packages"]["meridian-storage-evidence"] = "1.0.1"
+    spec["operation"]["packages"]["meridian-storage-evidence"] = EVIDENCE_VERSION
     spec["resources"].append({"catalog": "evidence", "namespace": "example", "name": "audit"})
     repin(module, spec)
     data = write(durable)
@@ -309,7 +309,9 @@ def test_empty_declaration_and_optional_evidence_pin_start(durable, tmp_path):
     spec, _ = job(
         durable,
         tmp_path,
-        mutate=lambda args: args["packages"].update({"meridian-storage-evidence": "1.0.1"}),
+        mutate=lambda args: args["packages"].update(
+            {"meridian-storage-evidence": EVIDENCE_VERSION}
+        ),
     )
     module = load_worker(tmp_path)
     assert spec["operation"]["version"] == "1.0.0"

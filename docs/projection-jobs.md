@@ -247,7 +247,8 @@ npm pack --ignore-scripts --pack-destination /tmp
 npm install --ignore-scripts --prefix /tmp/projection-consumer /tmp/zephytiju-meridian-storage-constructs-1.3.0.tgz
 npm install --ignore-scripts --prefix /tmp/projection-legacy @zephytiju/meridian-storage-constructs@1.1.0
 python3.12 -m venv /tmp/projection-runtime
-/tmp/projection-runtime/bin/pip install -r src/jobs/projection/assets/requirements.txt pytest==8.4.2
+/tmp/projection-runtime/bin/pip install -r tests/integration/jobs/requirements-repaired.txt pytest==8.4.2
+/tmp/projection-runtime/bin/pip check
 export CONSTRUCTS_MODULE=/tmp/projection-consumer/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
 export LEGACY_CONSTRUCTS_MODULE=/tmp/projection-legacy/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
 # Supply a disposable local PostgreSQL/PostGIS DSN through the test environment.
@@ -271,7 +272,9 @@ preserved and verified against the installed distribution. Missing APIs such as
 required Operations, atomic guarantees, Schema and placement checks remain.
 
 The CI matrix independently varies PostgreSQL 16/17 and public PostgreSQL Adapter
-2.1.0/2.1.1, using only normal public dependency resolution. It records installed
+2.1.0/2.1.1 for historical regression and 2.2.0 with Core 1.1.0, Projection 1.0.3
+and Evidence 1.0.2 for final acceptance, using normal public dependency resolution.
+The selected requirements are explicit; installed versions must match them. It records installed
 package versions, pip archive hashes, selected image digests, authenticated server
 versions and JUnit results. Any skipped required case fails evidence collection.
 Other combinations remain unverified. See [release validation](release-validation.md).

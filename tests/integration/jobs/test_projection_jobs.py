@@ -17,14 +17,23 @@ from conftest import ctx, intent
 from meridian_storage.adapters.postgresql.descriptor import manifest
 from meridian_storage.projection import TransactionalOutboxWriter
 
-PINS = {
-    "meridian-storage-core": "1.0.1",
-    "meridian-storage-semantics": "2.0.0",
-    "meridian-storage-query": "1.0.2",
-    "meridian-storage-projection": "1.0.2",
-    "meridian-storage-postgresql": os.environ.get("MERIDIAN_POSTGRESQL_PACKAGE_VERSION", "2.1.1"),
-}
 HERE = Path(__file__).parent
+REQUIREMENTS = Path(
+    os.environ.get("MERIDIAN_RUNTIME_REQUIREMENTS", str(HERE / "requirements-repaired.txt"))
+)
+SELECTED_PACKAGES = dict(
+    line.split("==")
+    for line in REQUIREMENTS.read_text().splitlines()
+    if line and not line.startswith("#")
+)
+if "MERIDIAN_POSTGRESQL_PACKAGE_VERSION" in os.environ:
+    SELECTED_PACKAGES["meridian-storage-postgresql"] = os.environ[
+        "MERIDIAN_POSTGRESQL_PACKAGE_VERSION"
+    ]
+EVIDENCE_VERSION = SELECTED_PACKAGES["meridian-storage-evidence"]
+PINS = {
+    name: value for name, value in SELECTED_PACKAGES.items() if name != "meridian-storage-evidence"
+}
 
 
 def write(h, identity="case", number=1, deleted=False):
@@ -101,7 +110,7 @@ def job(h, tmp_path, batch=1, mutate=None, required_evidence=False):
         args["requiredEvidence"] = [
             {"catalog": "evidence", "namespace": "example", "name": "audit"}
         ]
-        args["packages"]["meridian-storage-evidence"] = "1.0.1"
+        args["packages"]["meridian-storage-evidence"] = EVIDENCE_VERSION
     if mutate:
         mutate(args)
     result = subprocess.run(
@@ -170,7 +179,7 @@ def test_installed_artifacts():
     from meridian_storage.adapters.postgresql import PostgreSQLOutbox
     from meridian_storage.projection import ProjectionRunner
 
-    assert {n: version(n) for n in PINS} == PINS
+    assert {n: version(n) for n in SELECTED_PACKAGES} == SELECTED_PACKAGES
     for cls in (PostgreSQLOutbox, ProjectionRunner, TransactionalOutboxWriter):
         assert "site-packages" in Path(inspect.getfile(cls)).parts
     assert "node_modules" in Path(os.environ["CONSTRUCTS_MODULE"]).parts
