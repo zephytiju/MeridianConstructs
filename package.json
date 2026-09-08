@@ -89,7 +89,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@pulumi/pulumi": "3.257.0",
+    "@pulumi/pulumi": "3.261.0",
     "ajv": "8.20.0"
   },
   "devDependencies": {
