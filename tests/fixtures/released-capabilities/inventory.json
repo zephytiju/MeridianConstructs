@@ -1,0 +1,3734 @@
+{
+  "capabilitySchema": {
+    "$comment": "SPDX-License-Identifier: Apache-2.0",
+    "$defs": {
+      "limits": {
+        "additionalProperties": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "type": "object"
+      },
+      "name": {
+        "maxLength": 256,
+        "minLength": 1,
+        "type": "string"
+      },
+      "operationCapability": {
+        "additionalProperties": false,
+        "properties": {
+          "cursorBehavior": {
+            "$ref": "#/$defs/name"
+          },
+          "extensions": {
+            "type": "object"
+          },
+          "guarantees": {
+            "items": {
+              "$ref": "#/$defs/name"
+            },
+            "type": "array",
+            "uniqueItems": true
+          },
+          "healthProbes": {
+            "items": {
+              "$ref": "#/$defs/name"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          },
+          "limits": {
+            "$ref": "#/$defs/limits"
+          },
+          "migrationBehavior": {
+            "$ref": "#/$defs/name"
+          },
+          "operationContract": {
+            "$ref": "#/$defs/name"
+          },
+          "operationVersions": {
+            "items": {
+              "$ref": "#/$defs/name"
+            },
+            "minItems": 1,
+            "type": "array",
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "operationContract",
+          "operationVersions",
+          "guarantees",
+          "limits",
+          "cursorBehavior",
+          "migrationBehavior",
+          "healthProbes",
+          "extensions"
+        ],
+        "type": "object"
+      }
+    },
+    "$id": "https://github.com/zephytiju/MeridianCore/contracts/adapter-capability/meridian-adapter-capabilities.v1.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "additionalProperties": false,
+    "properties": {
+      "availableOperationContracts": {
+        "items": {
+          "$ref": "#/$defs/name"
+        },
+        "minItems": 1,
+        "type": "array",
+        "uniqueItems": true
+      },
+      "descriptor": {
+        "additionalProperties": false,
+        "properties": {
+          "adapterContractVersion": {
+            "$ref": "#/$defs/name"
+          },
+          "adapterId": {
+            "$ref": "#/$defs/name"
+          },
+          "capabilities": {
+            "items": {
+              "$ref": "#/$defs/operationCapability"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "driver": {
+            "$ref": "#/$defs/name"
+          },
+          "supportedEngineVersions": {
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/$defs/name"
+              },
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "description": "Profile keys are identities. Values are historical tested-release metadata, not a release allowlist; legacy S3/OCI values retain their protocol meaning.",
+            "minProperties": 1,
+            "type": "object"
+          }
+        },
+        "required": [
+          "adapterId",
+          "adapterContractVersion",
+          "driver",
+          "supportedEngineVersions",
+          "capabilities"
+        ],
+        "type": "object"
+      },
+      "engineProfile": {
+        "$ref": "#/$defs/name"
+      },
+      "engineVersion": {
+        "$ref": "#/$defs/name",
+        "description": "Profile-defined declared version; legacy S3/OCI protocol identifier. Not independently observed server-release evidence."
+      },
+      "extensions": {
+        "type": "object"
+      },
+      "formatVersion": {
+        "const": "meridian-adapter-capabilities.v1"
+      }
+    },
+    "required": [
+      "formatVersion",
+      "descriptor",
+      "engineProfile",
+      "engineVersion",
+      "availableOperationContracts",
+      "extensions"
+    ],
+    "title": "Meridian V1 Adapter capability manifest",
+    "type": "object"
+  },
+  "classification": "Public released contract metadata; no authenticated Engine evidence",
+  "coreVersion": "1.1.0",
+  "profiles": {
+    "apache-kafka": {
+      "fingerprint": "sha256:63763c20fa210ae54836b9b0b52b9ff3e00e244a54da8eaa96aa2997c64de4f0",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.streaming.acknowledge",
+          "meridian.streaming.create-resource",
+          "meridian.streaming.group-position",
+          "meridian.streaming.negative-acknowledge",
+          "meridian.streaming.poll",
+          "meridian.streaming.publish",
+          "meridian.streaming.publish-batch",
+          "meridian.streaming.publish-schema",
+          "meridian.streaming.read-range",
+          "meridian.streaming.replay",
+          "meridian.streaming.subscribe",
+          "meridian.streaming.transactional-consume-publish",
+          "meridian.transaction"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "meridian.kafka",
+          "capabilities": [
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "consumer-groups",
+                "monotonic-safe-position"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.acknowledge",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": ["streaming-resource-lifecycle"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.create-resource",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "compare-and-set",
+                "consumer-groups",
+                "explicit-group-position",
+                "opaque-cursors"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.group-position",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "consumer-groups",
+                "dead-letter",
+                "redelivery"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.negative-acknowledge",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "consumer-groups",
+                "per-logical-partition-ordering"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxPollSize": 10000,
+                "maxWaitTimeoutMs": 300000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.poll",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "idempotent-producer",
+                "per-logical-partition-ordering",
+                "schema-fingerprint"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.publish",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "idempotent-producer",
+                "per-logical-partition-ordering",
+                "schema-fingerprint"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxBatchSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.publish-batch",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": ["streaming-schema-publication"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.publish-schema",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "finite-retained-range",
+                "opaque-cursors",
+                "retention-boundary-validation"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxRangePartitions": 128,
+                "maxRangeSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.read-range",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "explicit-replay",
+                "finite-retained-range",
+                "opaque-cursors",
+                "retention-boundary-validation"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxRangePartitions": 128,
+                "maxRangeSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.replay",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": ["subscriptions"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.subscribe",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "externalSideEffects": false
+              },
+              "guarantees": [
+                "atomic-consumed-offset",
+                "atomic-publish",
+                "committed-reads",
+                "idempotent-producer",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxBatchSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.transactional-consume-publish",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "scope": "single-compatible-kafka-binding"
+              },
+              "guarantees": ["atomic", "no-dirty-reads", "single-binding"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.transaction",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "confluent-kafka",
+          "supportedEngineVersions": {
+            "apache-kafka": ["4.1.2", "4.2.1", "4.3.1"],
+            "apache-kafka-test": ["4.1.2", "4.2.1", "4.3.1"]
+          }
+        },
+        "engineProfile": "apache-kafka",
+        "engineVersion": "4.3.1",
+        "extensions": {},
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-kafka",
+      "version": "1.1.0"
+    },
+    "apache-kafka-test": {
+      "fingerprint": "sha256:647a41405206ce16ba3e89f646d56c8c9115ad2faeff0f0067e79578d18d9107",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.streaming.acknowledge",
+          "meridian.streaming.create-resource",
+          "meridian.streaming.group-position",
+          "meridian.streaming.negative-acknowledge",
+          "meridian.streaming.poll",
+          "meridian.streaming.publish",
+          "meridian.streaming.publish-batch",
+          "meridian.streaming.publish-schema",
+          "meridian.streaming.read-range",
+          "meridian.streaming.replay",
+          "meridian.streaming.subscribe",
+          "meridian.streaming.transactional-consume-publish",
+          "meridian.transaction"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "meridian.kafka",
+          "capabilities": [
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "consumer-groups",
+                "monotonic-safe-position"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.acknowledge",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": ["streaming-resource-lifecycle"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.create-resource",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "compare-and-set",
+                "consumer-groups",
+                "explicit-group-position",
+                "opaque-cursors"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.group-position",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "consumer-groups",
+                "dead-letter",
+                "redelivery"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.negative-acknowledge",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "consumer-groups",
+                "per-logical-partition-ordering"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxPollSize": 10000,
+                "maxWaitTimeoutMs": 300000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.poll",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "idempotent-producer",
+                "per-logical-partition-ordering",
+                "schema-fingerprint"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.publish",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "at-least-once",
+                "idempotent-producer",
+                "per-logical-partition-ordering",
+                "schema-fingerprint"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxBatchSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.publish-batch",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": ["streaming-schema-publication"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.publish-schema",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "finite-retained-range",
+                "opaque-cursors",
+                "retention-boundary-validation"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxRangePartitions": 128,
+                "maxRangeSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.read-range",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": [
+                "explicit-replay",
+                "finite-retained-range",
+                "opaque-cursors",
+                "retention-boundary-validation"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxRangePartitions": 128,
+                "maxRangeSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.replay",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "streaming",
+                "consumerSurface": "mapping-first",
+                "lifecycleAuthority": "iac"
+              },
+              "guarantees": ["subscriptions"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "physical-mapping",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.subscribe",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "externalSideEffects": false
+              },
+              "guarantees": [
+                "atomic-consumed-offset",
+                "atomic-publish",
+                "committed-reads",
+                "idempotent-producer",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated-metadata",
+                "transaction-coordinator"
+              ],
+              "limits": {
+                "maxBatchSize": 10000
+              },
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.streaming.transactional-consume-publish",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-hmac-sha256",
+              "extensions": {
+                "scope": "single-compatible-kafka-binding"
+              },
+              "guarantees": ["atomic", "no-dirty-reads", "single-binding"],
+              "healthProbes": [
+                "authenticated-metadata",
+                "transaction-coordinator"
+              ],
+              "limits": {},
+              "migrationBehavior": "iac-external",
+              "operationContract": "meridian.transaction",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "confluent-kafka",
+          "supportedEngineVersions": {
+            "apache-kafka": ["4.1.2", "4.2.1", "4.3.1"],
+            "apache-kafka-test": ["4.1.2", "4.2.1", "4.3.1"]
+          }
+        },
+        "engineProfile": "apache-kafka-test",
+        "engineVersion": "4.3.1",
+        "extensions": {},
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-kafka",
+      "version": "1.1.0"
+    },
+    "aws-s3": {
+      "fingerprint": "sha256:97708fce64d5ec053838058e668b31ae8c3c57b427ea72e2fe0d5144dd24b4db",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.object.create_resource",
+          "meridian.object.delete",
+          "meridian.object.get",
+          "meridian.object.list",
+          "meridian.object.publish_schema",
+          "meridian.object.put",
+          "meridian.object.read_range",
+          "meridian.object.stat"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "s3",
+          "capabilities": [
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.create_resource",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.exact-version-delete"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.delete",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.digest-verification", "object.streaming"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-logical-start-after",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.bounded-prefix-list"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {
+                "object.max-list-page-size": 1000
+              },
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.list",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.publish_schema",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [
+                "object.conditional-create",
+                "object.digest-sha256",
+                "object.digest-verification",
+                "object.immutability-intent",
+                "object.metadata-after-commit",
+                "object.multipart",
+                "object.retention-intent",
+                "object.streaming"
+              ],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {
+                "object.max-multipart-part-bytes": 5368709120,
+                "object.max-multipart-parts": 10000,
+                "object.max-object-bytes": 5497558138880,
+                "object.max-user-metadata-entries": 128
+              },
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.put",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.digest-verification", "object.range-read"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {
+                "object.max-range-bytes": 67108864
+              },
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.read_range",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.stat",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "boto3>=1.40,<2",
+          "supportedEngineVersions": {
+            "aws-s3": ["2006-03-01"],
+            "s3-compatible": ["2006-03-01"]
+          }
+        },
+        "engineProfile": "aws-s3",
+        "engineVersion": "2006-03-01",
+        "extensions": {
+          "adapterVersion": "1.0.4",
+          "coreVersion": "1.1.0",
+          "objectCommonVersion": "1.0.3",
+          "objectLockVerified": false,
+          "s3ApiContract": "2006-03-01",
+          "selectedServerVersion": null,
+          "versioningVerified": false
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-s3",
+      "version": "1.0.4"
+    },
+    "clickhouse-replicated": {
+      "fingerprint": "sha256:8d6a731ac83721d47825d40e4de51d0b4e7ea9c016d304b3b6412ba16a5de47e",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.evidence.append",
+          "meridian.evidence.query",
+          "meridian.structured.aggregate",
+          "meridian.structured.get",
+          "meridian.structured.put",
+          "meridian.structured.query"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "meridian.storage.clickhouse",
+          "capabilities": [
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "recordProfiles": [
+                  "analytical",
+                  "cost",
+                  "log",
+                  "metric",
+                  "span",
+                  "time-series",
+                  "usage"
+                ]
+              },
+              "guarantees": [
+                "eventual-visibility",
+                "retry-window-dedup",
+                "scope-isolation"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.evidence.append",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "bounded-time-range",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.evidence.query",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "bounded-time-range",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.aggregate",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "eventual-visibility",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "writeModel": "append-version"
+              },
+              "guarantees": [
+                "eventual-visibility",
+                "retry-window-dedup",
+                "scope-isolation"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.put",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "bounded-time-range",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.query",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "clickhouse-connect/0.15",
+          "supportedEngineVersions": {
+            "clickhouse-replicated": ["25.3"]
+          }
+        },
+        "engineProfile": "clickhouse-replicated",
+        "engineVersion": "25.3",
+        "extensions": {
+          "layoutSetFingerprint": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "migrationAuthority": "external-iac-job",
+          "queryCapabilityFingerprint": "sha256:434f465ecf2515633fb150ade7baf4dffcf048f45f9a7522e3bd834a700b0615"
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-clickhouse",
+      "version": "1.1.1"
+    },
+    "clickhouse-standalone": {
+      "fingerprint": "sha256:9b51986b5ffc9962969ec6daa2a4f0cd529267fd369ae6aa9564d1d40ef27c41",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.evidence.append",
+          "meridian.evidence.query",
+          "meridian.structured.aggregate",
+          "meridian.structured.get",
+          "meridian.structured.put",
+          "meridian.structured.query"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "meridian.storage.clickhouse",
+          "capabilities": [
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "recordProfiles": [
+                  "analytical",
+                  "cost",
+                  "log",
+                  "metric",
+                  "span",
+                  "time-series",
+                  "usage"
+                ]
+              },
+              "guarantees": [
+                "eventual-visibility",
+                "retry-window-dedup",
+                "scope-isolation"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.evidence.append",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "bounded-time-range",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.evidence.query",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "bounded-time-range",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.aggregate",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "eventual-visibility",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "writeModel": "append-version"
+              },
+              "guarantees": [
+                "eventual-visibility",
+                "retry-window-dedup",
+                "scope-isolation"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.put",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "queryCapabilities": {
+                  "adapterId": "meridian.storage.clickhouse",
+                  "consistencyClasses": ["eventual"],
+                  "contractVersion": "1.0.0",
+                  "features": [
+                    "grouping",
+                    "live-keyset",
+                    "live-keyset-cursor",
+                    "projection",
+                    "quantile-profile"
+                  ],
+                  "formatVersion": "meridian.query.capabilities.v1",
+                  "guarantees": [
+                    "bounded-time-range",
+                    "deterministic-order",
+                    "parameterized-commands",
+                    "scope-isolation",
+                    "single-binding"
+                  ],
+                  "limits": {
+                    "deadlineMs": 30000,
+                    "maxTimeRangeSeconds": 2678400,
+                    "membershipNames": 10000,
+                    "pageSize": 500,
+                    "resultBytes": 16777216,
+                    "resultValues": 500
+                  },
+                  "logicalTypes": [
+                    "boolean",
+                    "bytes",
+                    "date",
+                    "decimal",
+                    "duration",
+                    "enum",
+                    "float64",
+                    "int16",
+                    "int32",
+                    "int64",
+                    "int8",
+                    "json",
+                    "objectRef",
+                    "recordRef",
+                    "string",
+                    "utcTimestamp",
+                    "uuid",
+                    "wgs84Point"
+                  ],
+                  "nativeSemantics": [
+                    "query.operation.aggregate",
+                    "query.operation.get",
+                    "query.operation.scan",
+                    "query.operator.aggregate.avg",
+                    "query.operator.aggregate.count",
+                    "query.operator.aggregate.max",
+                    "query.operator.aggregate.min",
+                    "query.operator.aggregate.percentile",
+                    "query.operator.aggregate.sum",
+                    "query.operator.and",
+                    "query.operator.eq",
+                    "query.operator.field",
+                    "query.operator.gt",
+                    "query.operator.gte",
+                    "query.operator.in",
+                    "query.operator.isNull",
+                    "query.operator.literal",
+                    "query.operator.lt",
+                    "query.operator.lte",
+                    "query.operator.ne",
+                    "query.operator.not",
+                    "query.operator.notIn",
+                    "query.operator.or",
+                    "query.operator.timestampRange",
+                    "query.pagination.keyset"
+                  ],
+                  "operations": ["aggregate", "get", "scan"],
+                  "operators": [
+                    "aggregate",
+                    "aggregate.avg",
+                    "aggregate.count",
+                    "aggregate.max",
+                    "aggregate.min",
+                    "aggregate.percentile",
+                    "aggregate.sum",
+                    "and",
+                    "eq",
+                    "field",
+                    "get",
+                    "gt",
+                    "gte",
+                    "in",
+                    "isNull",
+                    "literal",
+                    "lt",
+                    "lte",
+                    "ne",
+                    "not",
+                    "notIn",
+                    "or",
+                    "order",
+                    "scan",
+                    "timestampRange"
+                  ]
+                }
+              },
+              "guarantees": [
+                "bounded-time-range",
+                "scope-isolation",
+                "single-binding"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "functions",
+                "schema",
+                "timezone",
+                "topology"
+              ],
+              "limits": {
+                "maxBatchBytes": 16777216,
+                "maxBatchRows": 10000,
+                "maxTimeRangeSeconds": 2678400,
+                "pageSize": 500,
+                "retryWindowSeconds": 86400
+              },
+              "migrationBehavior": "external-iac-job",
+              "operationContract": "meridian.structured.query",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "clickhouse-connect/0.15",
+          "supportedEngineVersions": {
+            "clickhouse-standalone": ["25.3"]
+          }
+        },
+        "engineProfile": "clickhouse-standalone",
+        "engineVersion": "25.3",
+        "extensions": {
+          "layoutSetFingerprint": "sha256:4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+          "migrationAuthority": "external-iac-job",
+          "queryCapabilityFingerprint": "sha256:434f465ecf2515633fb150ade7baf4dffcf048f45f9a7522e3bd834a700b0615"
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-clickhouse",
+      "version": "1.1.1"
+    },
+    "oci-distribution": {
+      "fingerprint": "sha256:0ab34f6ba8b446276aa22008028faaf1f1578520c0ded060ce2404be2476a1fb",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.object.get",
+          "meridian.object.list",
+          "meridian.object.put",
+          "meridian.object.read_range",
+          "meridian.object.stat"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "oci-distribution",
+          "capabilities": [
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "design.catalogRevision": 70,
+                "design.hldRevision": 56,
+                "design.objectLldRevision": 12,
+                "oci.distributionSpec": "1.1.1",
+                "oci.imageSpec": "1.1.1"
+              },
+              "guarantees": [
+                "object.exact-version-delete",
+                "object.retention-intent"
+              ],
+              "healthProbes": ["authenticated", "content-management"],
+              "limits": {},
+              "migrationBehavior": "external-policy",
+              "operationContract": "meridian.object.delete",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "design.catalogRevision": 70,
+                "design.hldRevision": 56,
+                "design.objectLldRevision": 12,
+                "oci.distributionSpec": "1.1.1",
+                "oci.imageSpec": "1.1.1"
+              },
+              "guarantees": ["object.digest-verification", "object.streaming"],
+              "healthProbes": ["authenticated", "pull"],
+              "limits": {
+                "object.max-object-bytes": 5497558138880
+              },
+              "migrationBehavior": "logical-export-import",
+              "operationContract": "meridian.object.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-stable",
+              "extensions": {
+                "design.catalogRevision": 70,
+                "design.hldRevision": 56,
+                "design.objectLldRevision": 12,
+                "oci.distributionSpec": "1.1.1",
+                "oci.imageSpec": "1.1.1"
+              },
+              "guarantees": ["object.bounded-prefix-list"],
+              "healthProbes": ["authenticated", "content-discovery"],
+              "limits": {
+                "object.max-list-page-size": 1000
+              },
+              "migrationBehavior": "external",
+              "operationContract": "meridian.object.list",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "conditionalCreateMode": "single-writer",
+                "design.catalogRevision": 70,
+                "design.hldRevision": 56,
+                "design.objectLldRevision": 12,
+                "oci.distributionSpec": "1.1.1",
+                "oci.imageSpec": "1.1.1",
+                "retentionEnforcement": false
+              },
+              "guarantees": [
+                "object.conditional-create",
+                "object.digest-sha256",
+                "object.immutability-intent",
+                "object.metadata-after-commit",
+                "object.multipart",
+                "object.retention-intent",
+                "object.streaming"
+              ],
+              "healthProbes": ["authenticated", "push-pull", "range"],
+              "limits": {
+                "object.max-multipart-part-bytes": 4194304,
+                "object.max-multipart-parts": 10000,
+                "object.max-object-bytes": 5497558138880,
+                "object.max-user-metadata-entries": 128
+              },
+              "migrationBehavior": "logical-export-import",
+              "operationContract": "meridian.object.put",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "design.catalogRevision": 70,
+                "design.hldRevision": 56,
+                "design.objectLldRevision": 12,
+                "oci.distributionSpec": "1.1.1",
+                "oci.imageSpec": "1.1.1"
+              },
+              "guarantees": ["object.digest-verification", "object.range-read"],
+              "healthProbes": ["authenticated", "range"],
+              "limits": {
+                "object.max-range-bytes": 268435456
+              },
+              "migrationBehavior": "external",
+              "operationContract": "meridian.object.read_range",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "design.catalogRevision": 70,
+                "design.hldRevision": 56,
+                "design.objectLldRevision": 12,
+                "oci.distributionSpec": "1.1.1",
+                "oci.imageSpec": "1.1.1"
+              },
+              "guarantees": ["object.digest-verification"],
+              "healthProbes": ["authenticated", "pull"],
+              "limits": {},
+              "migrationBehavior": "external",
+              "operationContract": "meridian.object.stat",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "httpx",
+          "supportedEngineVersions": {
+            "oci-distribution": ["1.1.1"]
+          }
+        },
+        "engineProfile": "oci-distribution",
+        "engineVersion": "1.1.1",
+        "extensions": {
+          "bindingFingerprint": "sha256:6e1bd35c6237fc50c81e3cd7a3089ff4e52730d558409c0297b4fd57628298df",
+          "referrersRequired": false,
+          "verification": "configured"
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-oci",
+      "version": "1.1.0"
+    },
+    "opensearch": {
+      "fingerprint": "sha256:a87bfd72d1a6777fd6bc5fc73c802804dbcef6a03d30aa24dcb85b01c0220c62",
+      "manifest": {
+        "availableOperationContracts": ["meridian.structured.search"],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "org.meridian.storage.opensearch",
+          "capabilities": [
+            {
+              "cursorBehavior": "signed-live-search-after",
+              "extensions": {
+                "analysisProfile": "multilingual-icu/v1",
+                "denied": [
+                  "authoritative-crud",
+                  "authoritative-transactions",
+                  "audit-atomicity",
+                  "cas",
+                  "consumer-dsl",
+                  "consumer-regex",
+                  "consumer-scripts",
+                  "cross-binding-join"
+                ],
+                "initialLanguages": ["en", "zh"],
+                "languageMetadata": "unrestricted-bcp47-with-icu-fallback",
+                "pointInTime": "deployment-conditional",
+                "projection": {
+                  "consistency": "eventual",
+                  "externalVersioning": "external_gte",
+                  "writes": ["upsert", "tombstone-delete", "bounded-bulk"]
+                },
+                "rebuild": "generation-and-alias-hooks"
+              },
+              "guarantees": [
+                "eventual-consistency",
+                "logical-record-references",
+                "scope-isolation",
+                "single-binding",
+                "stable-keyset"
+              ],
+              "healthProbes": [
+                "analysis-resources",
+                "authenticated",
+                "cluster-health",
+                "mapping-fingerprint",
+                "plugins",
+                "topology"
+              ],
+              "limits": {
+                "bulkActions": 1000,
+                "bulkBytes": 8388608,
+                "facetBuckets": 100,
+                "facets": 32,
+                "filterClauses": 128,
+                "highlightFragments": 5,
+                "highlights": 32,
+                "pageSize": 500,
+                "queryBytes": 16384
+              },
+              "migrationBehavior": "external-generation-hooks-with-atomic-alias-cutover",
+              "operationContract": "meridian.structured.search",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "opensearch-py/3",
+          "supportedEngineVersions": {
+            "opensearch": [
+              "2.17.0",
+              "2.18.0",
+              "2.19.0",
+              "2.19.1",
+              "2.19.2",
+              "3.0.0",
+              "3.1.0",
+              "3.2.0"
+            ]
+          }
+        },
+        "engineProfile": "opensearch",
+        "engineVersion": "2.19.1",
+        "extensions": {
+          "analysisProfile": "multilingual-icu/v1",
+          "consistency": "eventual",
+          "pointInTime": "disabled"
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-opensearch",
+      "version": "1.1.0"
+    },
+    "postgresql-postgis-cluster": {
+      "fingerprint": "sha256:ff66d4f9307d70c535f166b2c1510538b25a7feb78eb962e6ceb060cabd07c65",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.evidence.append",
+          "meridian.evidence.query",
+          "meridian.structured.aggregate",
+          "meridian.structured.create_resource",
+          "meridian.structured.delete",
+          "meridian.structured.get",
+          "meridian.structured.patch",
+          "meridian.structured.publish_schema",
+          "meridian.structured.put",
+          "meridian.structured.query",
+          "meridian.structured.search",
+          "meridian.structured.traverse",
+          "meridian.transaction"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "postgresql",
+          "capabilities": [
+            {
+              "cursorBehavior": "none",
+              "extensions": {},
+              "guarantees": [
+                "append-only",
+                "atomic-evidence",
+                "bound-parameters",
+                "read-committed",
+                "scope-injected",
+                "scope-isolation",
+                "transactional-with-structured"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxPageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.evidence.append",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {},
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "scope-isolation",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxPageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.evidence.query",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.aggregate",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "external-migration",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.create_resource",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "conditional-mutation",
+                "read-committed",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.delete",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "conditional-mutation",
+                "read-committed",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.patch",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "durable-metadata",
+                "immutable-schema-version",
+                "no-runtime-ddl",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.publish_schema",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "conditional-mutation",
+                "read-committed",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.put",
+              "operationVersions": ["2.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.query",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.search",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "bounded-traversal",
+                "relation-collections",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.traverse",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {},
+              "guarantees": ["atomic", "no-dirty-reads", "read-committed"],
+              "healthProbes": ["authenticated", "readiness"],
+              "limits": {
+                "maxOperations": 10000
+              },
+              "migrationBehavior": "external",
+              "operationContract": "meridian.transaction",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "psycopg-3",
+          "supportedEngineVersions": {
+            "postgresql-postgis-cluster": ["16-postgis-3.4", "17-postgis-3.5"],
+            "postgresql-postgis-local-single-primary": [
+              "16-postgis-3.4",
+              "17-postgis-3.5"
+            ]
+          }
+        },
+        "engineProfile": "postgresql-postgis-cluster",
+        "engineVersion": "17-postgis-3.5",
+        "extensions": {
+          "org.meridian.postgresql/postgisRequired": true,
+          "org.meridian.postgresql/queryCapabilityFingerprint": "sha256:b74fab5ac877ec7f9cb1df6de5d9b424f5fbb8d54af00ee73a8805ae9b0a6d3a"
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-postgresql",
+      "version": "2.3.1"
+    },
+    "postgresql-postgis-local-single-primary": {
+      "fingerprint": "sha256:80a2090554fb442602adac53e611c5774ec5a3db57926c4ea9422f6650daa57d",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.evidence.append",
+          "meridian.evidence.query",
+          "meridian.structured.aggregate",
+          "meridian.structured.create_resource",
+          "meridian.structured.delete",
+          "meridian.structured.get",
+          "meridian.structured.patch",
+          "meridian.structured.publish_schema",
+          "meridian.structured.put",
+          "meridian.structured.query",
+          "meridian.structured.search",
+          "meridian.structured.traverse",
+          "meridian.transaction"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "postgresql",
+          "capabilities": [
+            {
+              "cursorBehavior": "none",
+              "extensions": {},
+              "guarantees": [
+                "append-only",
+                "atomic-evidence",
+                "bound-parameters",
+                "read-committed",
+                "scope-injected",
+                "scope-isolation",
+                "transactional-with-structured"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxPageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.evidence.append",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {},
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "scope-isolation",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxPageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.evidence.query",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.aggregate",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "external-migration",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.create_resource",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "conditional-mutation",
+                "read-committed",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.delete",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "conditional-mutation",
+                "read-committed",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.patch",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "durable-metadata",
+                "immutable-schema-version",
+                "no-runtime-ddl",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.publish_schema",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "conditional-mutation",
+                "read-committed",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.put",
+              "operationVersions": ["2.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.query",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "signed-live-keyset",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.search",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "org.meridian.postgresql/distance": "wgs84-geography-meters",
+                "org.meridian.postgresql/transaction": "read-committed"
+              },
+              "guarantees": [
+                "bound-parameters",
+                "bounded-traversal",
+                "relation-collections",
+                "scope-injected",
+                "single-binding",
+                "strong-consistency"
+              ],
+              "healthProbes": ["authenticated", "physical", "readiness"],
+              "limits": {
+                "maxMembershipNames": 10000,
+                "maxPageSize": 500,
+                "maxRelationResources": 32,
+                "maxTraversalDepth": 8,
+                "pageSize": 500
+              },
+              "migrationBehavior": "platform-iac-hook",
+              "operationContract": "meridian.structured.traverse",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {},
+              "guarantees": ["atomic", "no-dirty-reads", "read-committed"],
+              "healthProbes": ["authenticated", "readiness"],
+              "limits": {
+                "maxOperations": 10000
+              },
+              "migrationBehavior": "external",
+              "operationContract": "meridian.transaction",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "psycopg-3",
+          "supportedEngineVersions": {
+            "postgresql-postgis-cluster": ["16-postgis-3.4", "17-postgis-3.5"],
+            "postgresql-postgis-local-single-primary": [
+              "16-postgis-3.4",
+              "17-postgis-3.5"
+            ]
+          }
+        },
+        "engineProfile": "postgresql-postgis-local-single-primary",
+        "engineVersion": "17-postgis-3.5",
+        "extensions": {
+          "org.meridian.postgresql/postgisRequired": true,
+          "org.meridian.postgresql/queryCapabilityFingerprint": "sha256:b74fab5ac877ec7f9cb1df6de5d9b424f5fbb8d54af00ee73a8805ae9b0a6d3a"
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-postgresql",
+      "version": "2.3.1"
+    },
+    "s3-compatible": {
+      "fingerprint": "sha256:10e8ab961b7e23592ac1875d5df361ffe577041ce3b3232c60344b51e52adf15",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.object.create_resource",
+          "meridian.object.delete",
+          "meridian.object.get",
+          "meridian.object.list",
+          "meridian.object.publish_schema",
+          "meridian.object.put",
+          "meridian.object.read_range",
+          "meridian.object.stat"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "s3",
+          "capabilities": [
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.create_resource",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.exact-version-delete"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.delete",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.digest-verification", "object.streaming"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "opaque-logical-start-after",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.bounded-prefix-list"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {
+                "object.max-list-page-size": 1000
+              },
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.list",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.publish_schema",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [
+                "object.conditional-create",
+                "object.digest-sha256",
+                "object.digest-verification",
+                "object.immutability-intent",
+                "object.metadata-after-commit",
+                "object.multipart",
+                "object.retention-intent",
+                "object.streaming"
+              ],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {
+                "object.max-multipart-part-bytes": 5368709120,
+                "object.max-multipart-parts": 10000,
+                "object.max-object-bytes": 5497558138880,
+                "object.max-user-metadata-entries": 128
+              },
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.put",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": ["object.digest-verification", "object.range-read"],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {
+                "object.max-range-bytes": 67108864
+              },
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.read_range",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "catalog": "object",
+                "provider": "s3"
+              },
+              "guarantees": [],
+              "healthProbes": ["authenticated", "bucket-access"],
+              "limits": {},
+              "migrationBehavior": "externally-orchestrated-forward",
+              "operationContract": "meridian.object.stat",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "boto3>=1.40,<2",
+          "supportedEngineVersions": {
+            "aws-s3": ["2006-03-01"],
+            "s3-compatible": ["2006-03-01"]
+          }
+        },
+        "engineProfile": "s3-compatible",
+        "engineVersion": "2006-03-01",
+        "extensions": {
+          "adapterVersion": "1.0.4",
+          "coreVersion": "1.1.0",
+          "objectCommonVersion": "1.0.3",
+          "objectLockVerified": false,
+          "s3ApiContract": "2006-03-01",
+          "selectedServerVersion": null,
+          "versioningVerified": false
+        },
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-s3",
+      "version": "1.0.4"
+    },
+    "valkey-sentinel": {
+      "fingerprint": "sha256:8ce6bd11c5c33f174e9f8f34e3fcd000b5b84257d15f6e72a894ba41eff0d3eb",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.cache.compare_and_set",
+          "meridian.cache.delete",
+          "meridian.cache.get",
+          "meridian.cache.invalidate",
+          "meridian.cache.put",
+          "meridian.cache.put_if_absent"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "org.meridian.storage.valkey",
+          "capabilities": [
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "scriptDigest": "sha1:3c4e586aac59a7988a684447685a0e39b7a8071b",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "atomic-single-key",
+                "disposable-cache",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.compare_and_set",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": ["disposable-cache", "scope-isolation"],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.delete",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "corruptionMode": "delete-and-miss",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "disposable-cache",
+                "miss-on-unavailable",
+                "schema-validated",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "namespaceInvalidation": "deployment-generation-only",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "bounded-exact-keys",
+                "disposable-cache",
+                "scope-isolation"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.invalidate",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "disposable-cache",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.put",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "atomic-single-key",
+                "disposable-cache",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.put_if_absent",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "valkey-py",
+          "supportedEngineVersions": {
+            "valkey-sentinel": ["8.1.9"],
+            "valkey-standalone": ["8.1.9"]
+          }
+        },
+        "engineProfile": "valkey-sentinel",
+        "engineVersion": "8.1.9",
+        "extensions": {},
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-valkey",
+      "version": "1.1.0"
+    },
+    "valkey-standalone": {
+      "fingerprint": "sha256:b6000a5bcde5b9b76a63f1d7e22cecb93ef1d28ffb58036e9b71e56fdd68cf50",
+      "manifest": {
+        "availableOperationContracts": [
+          "meridian.cache.compare_and_set",
+          "meridian.cache.delete",
+          "meridian.cache.get",
+          "meridian.cache.invalidate",
+          "meridian.cache.put",
+          "meridian.cache.put_if_absent"
+        ],
+        "descriptor": {
+          "adapterContractVersion": "1.0.0",
+          "adapterId": "org.meridian.storage.valkey",
+          "capabilities": [
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "scriptDigest": "sha1:3c4e586aac59a7988a684447685a0e39b7a8071b",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "atomic-single-key",
+                "disposable-cache",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.compare_and_set",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": ["disposable-cache", "scope-isolation"],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.delete",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "corruptionMode": "delete-and-miss",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "disposable-cache",
+                "miss-on-unavailable",
+                "schema-validated",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.get",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "namespaceInvalidation": "deployment-generation-only",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "bounded-exact-keys",
+                "disposable-cache",
+                "scope-isolation"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.invalidate",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "disposable-cache",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.put",
+              "operationVersions": ["1.0.0"]
+            },
+            {
+              "cursorBehavior": "none",
+              "extensions": {
+                "consistencyClass": "disposable-cache",
+                "serializers": ["canonical-json", "raw-bytes"],
+                "ttlRequired": true
+              },
+              "guarantees": [
+                "atomic-single-key",
+                "disposable-cache",
+                "scope-isolation",
+                "ttl-bounded"
+              ],
+              "healthProbes": [
+                "authenticated",
+                "engine-version",
+                "eviction-policy",
+                "memory-limit",
+                "persistence-policy",
+                "required-commands",
+                "script-support",
+                "topology"
+              ],
+              "limits": {
+                "batchSize": 128,
+                "keyBytes": 512,
+                "maximumTtlMs": 86400000,
+                "valueBytes": 4194304
+              },
+              "migrationBehavior": "external-namespace-generation",
+              "operationContract": "meridian.cache.put_if_absent",
+              "operationVersions": ["1.0.0"]
+            }
+          ],
+          "driver": "valkey-py",
+          "supportedEngineVersions": {
+            "valkey-sentinel": ["8.1.9"],
+            "valkey-standalone": ["8.1.9"]
+          }
+        },
+        "engineProfile": "valkey-standalone",
+        "engineVersion": "8.1.9",
+        "extensions": {},
+        "formatVersion": "meridian-adapter-capabilities.v1"
+      },
+      "package": "meridian-storage-valkey",
+      "version": "1.1.0"
+    }
+  }
+}

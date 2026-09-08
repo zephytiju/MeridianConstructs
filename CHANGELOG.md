@@ -2,6 +2,18 @@
 
 # Changelog
 
+## 1.5.0
+
+- Align PostgreSQL planning with public 2.3.1 Operation versions, required Evidence
+  guarantees and durable Schema publication capabilities.
+- Accept a fingerprint-pinned public CapabilityManifest as planning-only Binding
+  input. Compare its available Operations, versions, guarantees and limits without
+  merging bundled defaults; preserve deployment identity and all V1 runtime checks.
+- Inventory all seven Adapter families and retain the existing test suites. Add
+  public Core comparison and PostgreSQL 2.3.1 packed-host acceptance on PG 16/17.
+- See [Operation capability migration](docs/operation-capabilities.md) for baseline
+  changes, selected-manifest usage and the limits of metadata conformance evidence.
+
 ## 1.4.0
 
 - Pin complete provider bundles independently from their individual ResourceDefinitions.
