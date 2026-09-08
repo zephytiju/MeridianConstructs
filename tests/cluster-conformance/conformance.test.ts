@@ -96,7 +96,7 @@ describe("local cluster-equivalent conformance", () => {
 
   it.each([
     ["Engine profile mismatch", { engineProfile: "unexpected" }],
-    ["unsupported Engine version", { engineVersion: "0" }],
+    ["exact deployment selection", { engineVersion: ">=17" }],
     ["Adapter identity mismatch", { adapterId: "unexpected" }],
     ["topology roles are unhealthy", { healthyRoles: [] }],
     ["missing operations", { operationContracts: [] }],

@@ -38,7 +38,12 @@ import {
   type ValidationPolicyV1,
 } from "../contracts/index.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
-import { getEngineProfile, type EngineProfileV1 } from "../profiles/index.js";
+import {
+  getEngineProfile,
+  validateEngineVersion,
+  validatePackagePins,
+  type EngineProfileV1,
+} from "../profiles/index.js";
 import {
   planDeployment,
   resolvePlacementBindings,
@@ -100,7 +105,9 @@ export interface EngineBindingArgsV1 {
   readonly topology?: Topology;
   readonly engineVersion?: string;
   readonly client?: ClientPolicyV1;
+  /** Complete deployment-selected distribution coordinates. */
   readonly compatibilityPins?: Readonly<Record<string, string>>;
+  readonly runtimeCompatibilityPins?: Readonly<Record<string, string>>;
   readonly acl: AclPolicyRef;
   readonly migration: MigrationStateV1;
   readonly observability: ObservabilityBindingV1;
@@ -217,12 +224,15 @@ export abstract class EngineBinding extends pulumi.ComponentResource {
     validateBindingMetadata(args);
     this.profile = getEngineProfile(args.profileId);
     validateStaticSelection(this.profile, mode, topology, engineVersion);
+    validatePackagePins(
+      args.compatibilityPins ?? {},
+      Object.keys(this.profile.compatibilityPins),
+    );
     const connection =
       typeof connectionInput === "function"
         ? connectionInput(this)
         : connectionInput;
     this.compatibilityPins = Object.freeze({
-      ...this.profile.compatibilityPins,
       ...(args.compatibilityPins ?? {}),
     });
     this.bindingRef = pulumi.output(args.bindingId);
@@ -284,7 +294,10 @@ export abstract class EngineBinding extends pulumi.ComponentResource {
         topology,
         engineVersion,
         client: args.client ?? defaultClientPolicy,
-        compatibilityPins: args.compatibilityPins ?? {},
+        compatibilityPins: this.compatibilityPins,
+        ...(args.runtimeCompatibilityPins === undefined
+          ? {}
+          : { runtimeCompatibilityPins: args.runtimeCompatibilityPins }),
         acl: this.acl,
         migration: this.migration,
         observability: this.observability,
@@ -347,6 +360,10 @@ export class ManagedEngine extends EngineBinding {
     const engineVersion =
       args.binding.engineVersion ?? profile.defaultEngineVersion;
     validateStaticSelection(profile, "managed", topology, engineVersion);
+    validatePackagePins(
+      args.binding.compatibilityPins ?? {},
+      Object.keys(profile.compatibilityPins),
+    );
     rejectSecretMaterial(
       args.request.settings ?? {},
       "managed Engine settings",
@@ -668,12 +685,7 @@ function validateStaticSelection(
   topology: Topology,
   engineVersion: string,
 ): void {
-  if (!profile.supportedEngineVersions.includes(engineVersion)) {
-    throw new MeridianConstructError(
-      constructErrorCodes.versionNotPinned,
-      `Profile ${profile.id} does not support Engine ${engineVersion}`,
-    );
-  }
+  validateEngineVersion(profile, engineVersion);
   if (
     !profile.allowedModes.includes(mode) ||
     !profile.allowedTopologies.includes(topology)

@@ -178,7 +178,7 @@ describe("deterministic deployment planning", () => {
     expect(() =>
       planDeployment(
         deploymentSpec({
-          bindings: [externalBinding({ engineVersion: "99.0" })],
+          bindings: [externalBinding({ engineVersion: ">=17" })],
         }),
       ),
     ).toThrow(/VERSION_NOT_PINNED/);
@@ -192,7 +192,7 @@ describe("deterministic deployment planning", () => {
           ],
         }),
       ),
-    ).toThrow(/must pin meridian-storage-postgresql=1.0.0/);
+    ).toThrow(/Missing deployment package pin/);
     expect(() =>
       planDeployment(
         deploymentSpec({

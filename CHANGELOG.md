@@ -2,6 +2,17 @@
 
 # Changelog
 
+## 1.3.0
+
+- Accept independently deployment-selected Engine and library releases across every
+  profile, managed/external construct, renderer, conformance helper and durable host.
+- Retain required contracts, protocol constraints, provider modes, complete exact
+  package locks, image digests, placement, physical Schema and lifecycle checks.
+- Separate package-lock extensions from Core runtime compatibility expectations;
+  version generated release metadata as V2 while preserving the historical V1 file.
+- Consume public Core 1.1.0 golden fixtures and verify packed hosts against PostgreSQL
+  16/17 with independently selected public PostgreSQL Adapter 2.1.0/2.1.1.
+
 ## 1.2.0 — 2026-09-06
 
 - Declare required atomic Evidence Resources with `requiredEvidence`, validate

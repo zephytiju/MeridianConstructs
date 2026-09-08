@@ -1,6 +1,6 @@
 {
   "name": "@zephytiju/meridian-storage-constructs",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Reusable TypeScript Pulumi constructs for Meridian deployment-time engine placement",
   "type": "module",
   "sideEffects": false,
@@ -36,7 +36,8 @@
       "import": "./dist/validation/index.js"
     },
     "./contracts/compatibility.v1.json": "./contracts/compatibility.v1.json",
-    "./contracts/meridian-config.v1.schema.json": "./contracts/meridian-config.v1.schema.json"
+    "./contracts/meridian-config.v1.schema.json": "./contracts/meridian-config.v1.schema.json",
+    "./contracts/compatibility.v2.json": "./contracts/compatibility.v2.json"
   },
   "files": [
     "CHANGELOG.md",
@@ -45,7 +46,8 @@
     "README.md",
     "contracts",
     "dist",
-    "docs/projection-jobs.md"
+    "docs/projection-jobs.md",
+    "docs/release-validation.md"
   ],
   "engines": {
     "node": ">=22"

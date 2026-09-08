@@ -22,7 +22,7 @@ PINS = {
     "meridian-storage-semantics": "2.0.0",
     "meridian-storage-query": "1.0.2",
     "meridian-storage-projection": "1.0.2",
-    "meridian-storage-postgresql": "2.1.0",
+    "meridian-storage-postgresql": os.environ.get("MERIDIAN_POSTGRESQL_PACKAGE_VERSION", "2.1.1"),
 }
 HERE = Path(__file__).parent
 
@@ -334,7 +334,7 @@ def test_invalid_placement_and_manifest_fail_before_claim(durable, tmp_path):
     for mutate in [
         lambda a: a["manifests"].clear(),
         lambda a: a["runtimeConfig"]["placements"].clear(),
-        lambda a: a["packages"].update({"meridian-storage-postgresql": "1.0.0"}),
+        lambda a: a["packages"].update({"meridian-storage-postgresql": ">=1.0.0"}),
     ]:
         with pytest.raises(ValueError):
             job(durable, tmp_path, mutate=mutate)

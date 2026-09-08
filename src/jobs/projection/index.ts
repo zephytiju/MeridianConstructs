@@ -15,10 +15,11 @@ import {
   type OpaqueSecretRef,
   type ResourceSelectorV1,
 } from "../../contracts/index.js";
+import { validatePackagePins } from "../../profiles/index.js";
 import { validateRuntimeConfig } from "../../runtime-config/index.js";
 import { createLifecycleJobSpec, type LifecycleJobSpecV1 } from "../index.js";
 
-/** Exact, independently released durable integration. No workspace dependencies. */
+/** Historical reproducible example only; never a host or renderer release gate. */
 export const projectionPackagePins = Object.freeze({
   "meridian-storage-core": "1.0.1",
   "meridian-storage-semantics": "2.0.0",
@@ -184,22 +185,13 @@ export function durableProjectionJob(
   ) {
     throw new Error("Required Evidence needs a registered Evidence Catalog");
   }
-  const packages: Record<string, string> = { ...projectionPackagePins };
-  for (const [name, version] of Object.entries(projectionPackagePins)) {
-    if (input.packages[name] !== version)
-      throw new Error("Projection requires exact released package pins");
-  }
-  const evidencePackage = "meridian-storage-evidence";
-  if (
-    requiredEvidence.length > 0 ||
-    Object.hasOwn(input.packages, evidencePackage)
-  ) {
-    if (input.packages[evidencePackage] !== "1.0.1")
-      throw new Error(
-        "Projection requires the compatible Evidence package pin",
-      );
-    packages[evidencePackage] = "1.0.1";
-  }
+  const requiredPackages = Object.keys(projectionPackagePins);
+  if (requiredEvidence.length > 0)
+    requiredPackages.push("meridian-storage-evidence");
+  validatePackagePins(input.packages, requiredPackages);
+  const packages = Object.fromEntries(
+    Object.entries(input.packages).sort(([a], [b]) => a.localeCompare(b)),
+  );
   for (const [schema, resource] of [
     [input.sourceSchema, input.source],
     [input.targetSchema, input.target],
@@ -251,6 +243,23 @@ export function durableProjectionJob(
   }
   const secretRefs = new Map<string, OpaqueSecretRef>();
   for (const binding of resolved) {
+    const packageLock = object(binding.extensions)[
+      "org.meridian.constructs/package-lock.v1"
+    ];
+    if (packageLock !== undefined) {
+      const lock = object(packageLock);
+      const selected = object(lock.packages);
+      if (
+        lock.formatVersion !== "meridian-deployment-package-lock.v1" ||
+        Object.entries(selected).some(
+          ([name, release]) => packages[name] !== release,
+        )
+      ) {
+        throw new Error(
+          "Projection package lock differs from the selected deployment Binding",
+        );
+      }
+    }
     validateEngineConnection(binding as unknown as EngineConnectionV1);
     if (
       binding.adapterId !== "postgresql" ||

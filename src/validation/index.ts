@@ -5,6 +5,7 @@ import type { DeploymentSpecV1, Topology } from "../contracts/index.js";
 import {
   compatibilityFingerprint,
   getEngineProfile,
+  validateEngineVersion,
 } from "../profiles/index.js";
 import {
   planDeployment,
@@ -190,9 +191,7 @@ export async function runLocalClusterConformance(
     if (observed.engineProfile !== released.engineProfile) {
       throw new Error(`${testProfile.id}: Engine profile mismatch`);
     }
-    if (!released.supportedEngineVersions.includes(observed.engineVersion)) {
-      throw new Error(`${testProfile.id}: unsupported Engine version`);
-    }
+    validateEngineVersion(released, observed.engineVersion);
     if (observed.adapterId !== released.adapterId) {
       throw new Error(`${testProfile.id}: Adapter identity mismatch`);
     }

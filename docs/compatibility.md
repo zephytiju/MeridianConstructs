@@ -1,8 +1,11 @@
 <!-- SPDX-License-Identifier: Apache-2.0 -->
 
-# Released compatibility matrix
+# Historical release recipes and required contracts
 
-The executable matrix and packaged evidence are checked for drift on every CI run.
+These historical recipes are reproducibility metadata, never release allowlists.
+Deployments choose and hash-lock exact distributions and Engine images independently.
+Previously unlisted selections pass metadata validation; they remain unverified until
+real Engine acceptance. Protocol, feature, provider and integrity gates still apply.
 
 | Engine profile                                    | Adapter distribution pin            | Adapter ID                        | Engine versions                    | Default          |
 | ------------------------------------------------- | ----------------------------------- | --------------------------------- | ---------------------------------- | ---------------- |
@@ -15,8 +18,12 @@ The executable matrix and packaged evidence are checked for drift on every CI ru
 | `oci-distribution`                                | `meridian-storage-oci@1.0.0`        | `oci-distribution`                | `1.1.1`                            | `1.1.1`          |
 | `apache-kafka` / `apache-kafka-test`              | `meridian-storage-kafka@1.0.1`      | `meridian.kafka`                  | `4.1.2`, `4.2.1`, `4.3.1`          | `4.3.1`          |
 
-Profile compatibility pins also capture the required Core, Semantics, Query, Object Common, and
-Streaming public package versions. These are contract evidence, not runtime dependencies of
+Profile `compatibilityPins` and `adapterVersion` record the old example recipe.
+Their package names describe required dependencies; their release values are not predicates.
+The caller supplies the complete `BindingSpecV1.compatibilityPins` deployment lock.
+Coordinates are validated and rendered into `org.meridian.constructs/package-lock.v1`;
+`runtimeCompatibilityPins` carries genuine Core contract/manifest expectations separately.
+These records are not runtime dependencies of
 `@zephytiju/meridian-storage-constructs`. Consumer code therefore does not load Adapter modules or
 Kafka.
 
@@ -27,5 +34,11 @@ fingerprint and can depend on the exact Engine settings. Platform/Vangu obtains 
 the Adapter's released expected-fingerprint helper or an authenticated probe.
 
 The machine-readable source is
-[`contracts/compatibility.v1.json`](../contracts/compatibility.v1.json). `npm run contracts:check`
+[`contracts/compatibility.v2.json`](../contracts/compatibility.v2.json). `npm run contracts:check`
 rebuilds the contract from the executable registry and fails on byte drift.
+
+The V1 artifact remains packaged unchanged as a historical document. V2 explicitly
+uses `examplePackages`, `testedEngineVersions` and `engineVersionMeaning`.
+S3 `2006-03-01` and OCI `1.1.1` remain protocol identifiers in legacy profile fields;
+observed server software must be recorded separately by the authenticated harness.
+See [gate inventory and release acceptance](release-validation.md).

@@ -22,7 +22,7 @@ describe("one repository, one TypeScript package", () => {
     };
     expect(packageJson).toMatchObject({
       name: "@zephytiju/meridian-storage-constructs",
-      version: "1.2.0",
+      version: "1.3.0",
       license: "Apache-2.0",
       publishConfig: { access: "public", provenance: true },
     });
@@ -37,7 +37,7 @@ describe("one repository, one TypeScript package", () => {
 
   it("ships synchronized compatibility and runtime contracts", () => {
     const compatibility = JSON.parse(
-      readFileSync("contracts/compatibility.v1.json", "utf8"),
+      readFileSync("contracts/compatibility.v2.json", "utf8"),
     );
     const runtimeSchema = JSON.parse(
       readFileSync("contracts/meridian-config.v1.schema.json", "utf8"),

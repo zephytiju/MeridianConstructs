@@ -221,6 +221,8 @@ export interface BindingSpecV1 {
   readonly engineVersion: string;
   readonly client: ClientPolicyV1;
   readonly compatibilityPins: Readonly<Record<string, string>>;
+  /** Core contract/manifest expectations; distribution locks are separate. */
+  readonly runtimeCompatibilityPins?: Readonly<Record<string, string>>;
   readonly acl: AclPolicyRef;
   readonly migration: MigrationStateV1;
   readonly observability: ObservabilityBindingV1;
