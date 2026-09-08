@@ -50,10 +50,10 @@ describe("deterministic deployment planning", () => {
     expect(first.runtimeConfigJson).not.toContain("privateKey");
   });
 
-  it("requires the exact Catalog registry", () => {
+  it("accepts supported Catalog subsets and rejects unknown Catalogs", () => {
     expect(() =>
       planDeployment(deploymentSpec({ catalogs: catalogs.slice(0, 4) })),
-    ).toThrow(/Catalog registry must be exactly/);
+    ).not.toThrow();
     expect(() =>
       planDeployment(
         deploymentSpec({
@@ -63,7 +63,7 @@ describe("deterministic deployment planning", () => {
           ],
         }),
       ),
-    ).toThrow(/Catalog registry must be exactly/);
+    ).toThrow(/Catalog providers must use registered names/);
   });
 
   it("fails closed on missing or ambiguous placement", () => {

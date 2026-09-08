@@ -2,6 +2,17 @@
 
 # Changelog
 
+## 1.4.0
+
+- Pin complete provider bundles independently from their individual ResourceDefinitions.
+- Add `resourceFingerprint` as an explicit resource-pin alias; matching legacy inputs
+  retain the same V1 configuration bytes, capability outputs and hashing semantics.
+- Accept supported non-empty Catalog subsets, including each standalone Catalog;
+  reject unknown, empty, duplicate and missing-required selections at both boundaries.
+- Add packed Constructs/public Core metadata acceptance with public Semantics 2.1.0
+  and PostgreSQL Adapter 2.3.1 on PostgreSQL 16/17, including stale/swapped pins,
+  migration verification and durable publication/read under a role without DDL rights.
+
 ## 1.3.0
 
 - Accept independently deployment-selected Engine and library releases across every

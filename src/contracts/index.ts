@@ -39,12 +39,22 @@ export interface ResourceSelectorV1 {
   readonly name: string;
 }
 
-export interface SchemaRequirementV1 {
+interface SchemaRequirementCoordinatesV1 {
   readonly providerId: string;
   readonly package: string;
   readonly version: string;
-  readonly fingerprint: string;
 }
+
+/**
+ * Pin one ResourceDefinition from a Schema provider. `fingerprint` retains its
+ * historical resource-pin meaning; `resourceFingerprint` is its explicit alias.
+ * Neither field is a provider-bundle, SchemaDocument, or SchemaDefinition hash.
+ */
+export type SchemaRequirementV1 = SchemaRequirementCoordinatesV1 &
+  (
+    | { readonly fingerprint: string; readonly resourceFingerprint?: string }
+    | { readonly fingerprint?: string; readonly resourceFingerprint: string }
+  );
 
 export interface OperationRequirementV1 {
   readonly contract: string;
@@ -180,6 +190,7 @@ export interface SchemaProviderV1 {
   readonly id: string;
   readonly package: string;
   readonly contract: string;
+  /** Fingerprint of the complete provider ResourceBundle, independent of its Resources. */
   readonly requiredFingerprint: string;
 }
 
@@ -387,7 +398,7 @@ export function validateResourceRequirement(
     assertIdentifier(schema.providerId, "schema provider id");
     assertBoundedText(schema.package, "schema package", 256);
     assertBoundedText(schema.version, "schema version", 64);
-    assertFingerprint(schema.fingerprint, "schema fingerprint");
+    resourceDefinitionFingerprint(schema);
   }
   assertUnique(
     requirement.operations.map((item) => item.contract),
@@ -438,6 +449,33 @@ export function validateResourceRequirement(
     assertBoundedText(name, "resource label name", 128);
     assertBoundedText(value, `resource label ${name}`, 512);
   }
+}
+
+/** Resolve only the two names for the same ResourceDefinition pin. */
+export function resourceDefinitionFingerprint(
+  schema: SchemaRequirementV1,
+): string {
+  if (schema.resourceFingerprint !== undefined) {
+    assertFingerprint(schema.resourceFingerprint, "ResourceDefinition fingerprint");
+  }
+  const selected = schema.resourceFingerprint ?? schema.fingerprint;
+  if (selected === undefined) {
+    throw new MeridianConstructError(
+      constructErrorCodes.invalidInput,
+      "A ResourceDefinition fingerprint is required",
+    );
+  }
+  assertFingerprint(selected, "ResourceDefinition fingerprint");
+  if (schema.fingerprint !== undefined) {
+    assertFingerprint(schema.fingerprint, "ResourceDefinition fingerprint");
+    if (schema.fingerprint !== selected) {
+      throw new MeridianConstructError(
+        constructErrorCodes.invalidInput,
+        "fingerprint and resourceFingerprint must identify the same ResourceDefinition",
+      );
+    }
+  }
+  return selected;
 }
 
 export function validateEngineConnection(connection: EngineConnectionV1): void {

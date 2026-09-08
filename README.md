@@ -62,6 +62,11 @@ void engine;
 
 See [`examples/external.ts`](examples/external.ts) for a complete external-Engine deployment.
 
+Version 1.4.0 accepts any supported non-empty Catalog subset and independently pins
+provider bundles and individual Resources. See
+[`docs/resource-fingerprints.md`](docs/resource-fingerprints.md) for field meanings,
+the backward-compatible resource-pin alias, and public Core acceptance.
+
 For the released durable PostgreSQL projection profile, see
 [`docs/projection-jobs.md`](docs/projection-jobs.md). Version 1.3.0 separates deployment-selected releases from required contracts.
 It retains required atomic Evidence declarations and host startup validation.
@@ -71,7 +76,8 @@ version-addressed target/read wiring, while preserving the existing rebuild help
 
 ## V1 surface
 
-- Exact Catalog registry: `structured`, `object`, `cache`, `evidence`, `streaming`.
+- Supported Catalog registry: `structured`, `object`, `cache`, `evidence`, `streaming`;
+  deployments select a non-empty subset containing every required Resource's Catalog.
 - Released profiles for PostgreSQL, OpenSearch, ClickHouse, Valkey, S3, OCI Distribution, and
   Kafka/Streaming, with deployment-owned package locks and operation descriptor fingerprints.
 - One-primary defaults, opt-in multi-engine profiles, and exact-one Resource placement.
