@@ -1,11 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 import { createHash } from "node:crypto";
-import {
-  fingerprint,
-  normalizeJson,
-  type JsonObject,
-  type JsonValue,
-} from "../../../../canonical.js";
+import { fingerprint, type JsonObject } from "../../../../canonical.js";
 import {
   assertBoundedText,
   assertFingerprint,
@@ -28,6 +23,10 @@ import {
   sqlIdentifier as ident,
   sqlString as q,
 } from "./sql.js";
+import {
+  publicCanonicalJson,
+  publicClickHouseLayout,
+} from "../../../../clickhouse-layout.js";
 import { envelopeValidation } from "./validation.js";
 
 export { telemetryFields } from "./mapping.js";
@@ -58,6 +57,7 @@ interface PublicLayout {
   readonly identityFields: readonly string[];
   readonly topology: string;
   readonly queryFinal: boolean;
+  readonly appendOnly?: true;
 }
 
 export interface ClickHouseTelemetryInput {
@@ -95,6 +95,8 @@ export interface ClickHouseTelemetryInput {
 }
 
 export interface ClickHouseTelemetryPlan {
+  /** Complete validated public layouts; omission retains legacy layout semantics. */
+  readonly layouts: Readonly<Record<TelemetryRecordProfile, JsonObject>>;
   readonly collector: OtelCollectorSpecV1;
   readonly commandArguments: readonly string[];
   readonly migration: {
@@ -336,6 +338,7 @@ export function createClickHouseTelemetryPlan(
     },
   };
   return {
+    layouts: layouts as unknown as Record<TelemetryRecordProfile, JsonObject>,
     collector: createOtelCollectorSpec({
       mode: input.mode,
       image: input.image,
@@ -377,42 +380,13 @@ function validateLayout(
   input: JsonObject,
   profile: TelemetryRecordProfile,
 ): PublicLayout {
-  const value = normalizeJson(input) as JsonObject;
-  const required = [
-    "resource",
-    "table",
-    "recordProfile",
-    "schemaVersion",
-    "resourceFingerprint",
-    "schemaFingerprint",
-    "columns",
-    "timestampField",
-    "identityFields",
-    "dimensionFields",
-    "measurementFields",
-    "retentionSeconds",
-    "partitionInterval",
-    "topology",
-    "queryFinal",
-    "administrativeProfiles",
-    "indexes",
-    "layoutFingerprint",
-  ];
-  if (
-    Object.keys(value).length !== required.length ||
-    required.some((key) => !(key in value))
-  )
-    throw new TypeError("Public ResourceLayout has unknown or missing fields");
-  const { layoutFingerprint, ...content } = value;
-  assertFingerprint(layoutFingerprint as string, "public layout fingerprint");
-  if (`sha256:${sha(publicCanonicalJson(content))}` !== layoutFingerprint)
-    throw new TypeError("Public layout fingerprint does not match its content");
+  const value = publicClickHouseLayout(input);
   const layout = value as unknown as PublicLayout;
   resourceSelectorKey(layout.resource);
   if (
     layout.recordProfile !== profile ||
     layout.resource.catalog !== "evidence" ||
-    !layout.queryFinal ||
+    layout.queryFinal !== true ||
     layout.timestampField !== "observedTime" ||
     publicCanonicalJson(layout.identityFields) !== '["evidenceId"]'
   )
@@ -457,7 +431,7 @@ function validateLayout(
     if (
       column === undefined ||
       kind !== field.kind ||
-      column.many ||
+      column.many !== false ||
       column.nullable !== field.nullable ||
       column.clickhouseType !==
         (field.nullable ? `Nullable(${physical})` : physical)
@@ -584,23 +558,4 @@ FROM ${fieldTable}`,
 
 function sha(value: string): string {
   return createHash("sha256").update(value).digest("hex");
-}
-
-/** These render-time identities contain only strings, booleans and integers. */
-function publicCanonicalJson(value: unknown): string {
-  const normalized = normalizeJson(value);
-  const encode = (v: JsonValue): string => {
-    if (Array.isArray(v)) return `[${v.map(encode).join(",")}]`;
-    if (v !== null && typeof v === "object")
-      return `{${Object.keys(v)
-        .sort((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)))
-        .map((k) => `${JSON.stringify(k)}:${encode((v as JsonObject)[k]!)}`)
-        .join(",")}}`;
-    if (typeof v === "number" && !Number.isSafeInteger(v))
-      throw new TypeError(
-        "Render-time public identities require exact safe integers",
-      );
-    return JSON.stringify(v);
-  };
-  return encode(normalized);
 }

@@ -2,6 +2,10 @@
 import { fingerprint, type JsonObject } from "../canonical.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
 import type { EngineProfileV1 } from "./index.js";
+import {
+  publicClickHouseLayout,
+  publicCanonicalJson,
+} from "../clickhouse-layout.js";
 
 // Released Adapter configuration-to-capability mappings, independently verified
 // against public artifact parsers in integration tests. These are contract bounds,
@@ -86,7 +90,9 @@ export function configuredCapabilityProfile(
     }
     selected[limit] = value;
   }
-  if (Object.keys(selected).length === 0) return profile;
+  const appendOnly = configuredAppendOnly(profile, settings);
+  if (Object.keys(selected).length === 0 && appendOnly === undefined)
+    return profile;
   const operations = Object.fromEntries(
     Object.entries(profile.operations).map(([name, operation]) => {
       const limits = { ...operation.limits };
@@ -100,7 +106,19 @@ export function configuredCapabilityProfile(
       const body = {
         contract: operation.contract,
         versions: operation.versions,
-        guarantees: operation.guarantees,
+        guarantees:
+          name === "meridian.evidence.append" && appendOnly !== undefined
+            ? Object.freeze(
+                [
+                  ...new Set([
+                    ...operation.guarantees.filter(
+                      (g) => g !== "append-only" || appendOnly,
+                    ),
+                    ...(!hasManifest && appendOnly ? ["append-only"] : []),
+                  ]),
+                ].sort(),
+              )
+            : operation.guarantees,
         limits: Object.freeze(limits),
       };
       return [name, Object.freeze({ ...body, fingerprint: fingerprint(body) })];
@@ -110,4 +128,37 @@ export function configuredCapabilityProfile(
   void previous;
   const body = { ...selection, operations: Object.freeze(operations) };
   return Object.freeze({ ...body, profileFingerprint: fingerprint(body) });
+}
+
+function configuredAppendOnly(
+  profile: EngineProfileV1,
+  settings: JsonObject,
+): boolean | undefined {
+  if (
+    profile.adapterId !== "meridian.storage.clickhouse" ||
+    settings.layouts === undefined
+  )
+    return undefined;
+  try {
+    if (!Array.isArray(settings.layouts) || settings.layouts.length === 0)
+      throw new TypeError("layouts must be a nonempty array");
+    const layouts = settings.layouts.map(publicClickHouseLayout);
+    if (
+      layouts.some((l) => l.topology !== profile.engineProfile) ||
+      new Set(layouts.map((l) => publicCanonicalJson(l.resource))).size !==
+        layouts.length
+    )
+      throw new TypeError(
+        "layouts must have unique Resources and match the Binding topology",
+      );
+    const evidence = layouts.filter(
+      (l) => (l.resource as JsonObject).catalog === "evidence",
+    );
+    return evidence.length > 0 && evidence.every((l) => l.appendOnly === true);
+  } catch (error) {
+    throw new MeridianConstructError(
+      constructErrorCodes.invalidInput,
+      `Profile ${profile.id} has invalid public ClickHouse layouts: ${String(error)}`,
+    );
+  }
 }

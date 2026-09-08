@@ -77,7 +77,7 @@ except urllib.error.HTTPError as e: print(json.dumps({'status':e.code,'body':e.r
 except Exception as e: print(json.dumps({'status':0,'error':type(e).__name__}))
 """
 
-with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
+with tempfile.TemporaryDirectory(prefix="t100659-collector-") as tmp:
     work = Path(tmp)
     tls = work / "tls"
     tls.mkdir()
@@ -125,7 +125,7 @@ with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
                 "backend-data:/var/lib/clickhouse",
             ],
             "mem_limit": "2g",
-            "labels": {"task": "t100656"},
+            "labels": {"task": "t100659"},
         }
     }
     for mode in ("gateway", "sidecar"):
@@ -149,7 +149,7 @@ with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
                 "COLLECTOR_RELAY": "local-synthetic-relay",
             },
             "mem_limit": "256m",
-            "labels": {"task": "t100656"},
+            "labels": {"task": "t100659"},
             **({"ports": [f"127.0.0.1:{gateway_port}:4318"]} if mode == "gateway" else {}),
         }
     compose = work / "compose.yaml"
@@ -163,7 +163,7 @@ with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
             }
         )
     )
-    command = ["docker", "compose", "-p", "t100656-full-mapping", "-f", str(compose)]
+    command = ["docker", "compose", "-p", "t100659-full-mapping", "-f", str(compose)]
     for sock in sockets:
         sock.close()
     client = None
@@ -184,7 +184,7 @@ with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
                 "run",
                 "--rm",
                 "--label",
-                "task=t100656",
+                "task=t100659",
                 "-v",
                 PLUGIN_VOLUME + ":/runtime",
                 "-v",
@@ -252,7 +252,7 @@ with tempfile.TemporaryDirectory(prefix="t100656-collector-") as tmp:
                             "--rm",
                             "-i",
                             "--label",
-                            "task=t100656",
+                            "task=t100659",
                             "--network",
                             "container:" + container,
                             "-v",
@@ -285,7 +285,7 @@ print(json.dumps(float(rows[0].split()[-1])))
                         "run",
                         "--rm",
                         "--label",
-                        "task=t100656",
+                        "task=t100659",
                         "--network",
                         "container:" + container,
                         PYTHON,
@@ -364,7 +364,7 @@ print(json.dumps(float(rows[0].split()[-1])))
                         "--rm",
                         "-i",
                         "--label",
-                        "task=t100656",
+                        "task=t100659",
                         "--network",
                         "container:" + container,
                         "-v",
@@ -438,10 +438,10 @@ print(json.dumps(float(rows[0].split()[-1])))
                                 "run",
                                 "--rm",
                                 "--name",
-                                "t100656-plugin-sidecar",
+                                "t100659-plugin-sidecar",
                                 "-i",
                                 "--label",
-                                "task=t100656",
+                                "task=t100659",
                                 "--network",
                                 "container:" + container,
                                 "-v",
@@ -461,7 +461,7 @@ print(json.dumps(float(rows[0].split()[-1])))
                     )
                 finally:
                     subprocess.run(
-                        ["docker", "rm", "-f", "t100656-plugin-sidecar"], capture_output=True
+                        ["docker", "rm", "-f", "t100659-plugin-sidecar"], capture_output=True
                     )
             resources = EvidenceResources(*(c.layout.resource for c in STATES[mode][0]))
             queries = TelemetryQueries(RUNTIMES[index], resources)
@@ -523,9 +523,23 @@ print(json.dumps(float(rows[0].split()[-1])))
             }
             outcome["actualOtlpExporters"] = True
             REPORT.setdefault("realPlugin", []).append(outcome)
+        from append_layouts import core_append, legacy_migration_negative, verify_core_append
+
+        REPORT["appendLayoutCompatibility"] = [
+            legacy_migration_negative(client, mode, STATES[mode], SETTINGS[mode]) for mode in STATES
+        ]
+        REPORT["coreAppend"] = [
+            core_append(
+                client, mode, STATES[mode], RUNTIMES[i], SETTINGS[mode], tls / "cert.pem", wait
+            )
+            for i, mode in enumerate(STATES)
+        ]
         REPORT["durability"] = durability(
             send, client, STATES, RUNTIMES, SETTINGS, command, run, ready, wait, queue_size
         )
+        for i, mode in enumerate(STATES):
+            verify_core_append(mode, STATES[mode], RUNTIMES[i])
+        REPORT["coreAppendSurvivedBackendRestarts"] = True
         try:
             wrong = clickhouse_connect.get_client(
                 host="localhost",

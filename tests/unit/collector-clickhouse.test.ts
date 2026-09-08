@@ -45,6 +45,8 @@ describe("authenticated stock ClickHouse telemetry plan", () => {
     expect(JSON.stringify(selected)).toBe(before);
     expect(plan.collector.formatVersion).toBe("meridian-otel-collector.v1");
     expect(plan.collector.signals).toEqual(["logs", "metrics", "traces"]);
+    expect(plan.layouts).toEqual(selected.layouts);
+    expect(plan.layouts.log).not.toBe(selected.layouts.log);
     expect(plan.commandArguments).toEqual([
       "--feature-gates=ottl.functions.enableLambda",
     ]);
@@ -225,6 +227,57 @@ describe("authenticated stock ClickHouse telemetry plan", () => {
       createClickHouseTelemetryPlan(selected).migration.requiredLayouts,
     ).toContain(selected.layouts.log.layoutFingerprint);
   });
+  it("retains the complete append-only document and its distinct migration lock", () => {
+    const legacy = createClickHouseTelemetryPlan(input());
+    const selected = layoutChange((l) => {
+      l.appendOnly = true;
+    });
+    const plan = createClickHouseTelemetryPlan(selected);
+    expect(plan.layouts).toEqual(selected.layouts);
+    expect(plan.layouts.log.appendOnly).toBe(true);
+    expect(legacy.layouts.log).not.toHaveProperty("appendOnly");
+    expect(plan.migration.requiredLayouts).toContain(
+      selected.layouts.log.layoutFingerprint,
+    );
+    expect(plan.migration.fingerprint).not.toBe(legacy.migration.fingerprint);
+    // The selected destination/columns and canonical row mapping are unchanged.
+    // The caller must explicitly migrate the public table's sorting key.
+    expect(plan.migration.statements).toEqual(legacy.migration.statements);
+  });
+  it.each([false, null, 0, 1, "true", {}, []])(
+    "rejects noncanonical appendOnly %j",
+    (value) => {
+      expect(() =>
+        createClickHouseTelemetryPlan(
+          layoutChange((l) => {
+            l.appendOnly = value;
+          }),
+        ),
+      ).toThrow(/appendOnly/);
+    },
+  );
+  it("rejects adding appendOnly without re-locking the complete public content", () => {
+    const selected = input();
+    (selected.layouts.log as Record<string, unknown>).appendOnly = true;
+    expect(() => createClickHouseTelemetryPlan(selected)).toThrow(
+      /fingerprint/,
+    );
+  });
+  it.each([
+    (layout: Record<string, unknown>) => {
+      (layout.resource as Record<string, unknown>).extra = true;
+    },
+    (layout: Record<string, unknown>) => {
+      layout.administrativeProfiles = ["z", "a"];
+    },
+  ])(
+    "rejects noncanonical nested public content even with its own hash",
+    (change) => {
+      expect(() =>
+        createClickHouseTelemetryPlan(layoutChange(change)),
+      ).toThrow();
+    },
+  );
   it("quotes literal SQL separately from closed physical identifiers", () => {
     expect(sqlString("a'\\\n\0")).toBe("'a\\'\\\\\\x0a\\x00'");
     expect(sqlIdentifier("physical_1")).toBe("`physical_1`");
