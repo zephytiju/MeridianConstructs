@@ -13,6 +13,14 @@ canonical `meridian-config.v1` document plus logical Platform capability outputs
 The package does not import any Adapter—including Kafka—and never creates providers, discovers
 ambient credentials, reads another stack, or assumes Platform/Vangu state and lifecycle authority.
 
+Collector exporter passwords may use a complete `${env:VARIABLE_NAME}` substitution when
+`credentialRefs` declares `{ provider: "environment", reference: "VARIABLE_NAME" }`.
+The caller delivers that environment variable to the Collector; Constructs preserves the opaque
+substitution and never reads its value. Literal passwords, undeclared references, fallback values,
+and concatenated substitutions fail validation. Other secret-bearing keys retain their existing
+rejection rules. This configuration validation does not convert native exporter tables into Meridian
+Resources or establish stored-read compatibility.
+
 ```bash
 npm install @zephytiju/meridian-storage-constructs @pulumi/pulumi
 ```

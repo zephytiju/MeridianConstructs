@@ -187,9 +187,6 @@ export function createOtelCollectorSpec(
     );
   }
   resourceSelectorKey(input.backendReadPlacement);
-  rejectSecretMaterial(input.config, "Collector config");
-  const config = requireObject(normalizeJson(input.config), "Collector config");
-  validateCollectorConfig(config, input.signals);
   const extensions = requireObject(
     normalizeJson(input.extensions ?? {}),
     "Collector extensions",
@@ -203,6 +200,15 @@ export function createOtelCollectorSpec(
   for (const reference of credentialRefs) {
     assertIdentifier(reference.provider, "Collector credential provider");
     assertBoundedText(reference.reference, "Collector credential reference");
+    if (
+      reference.provider === "environment" &&
+      !/^[A-Za-z_][A-Za-z0-9_]*$/.test(reference.reference)
+    ) {
+      throw new MeridianConstructError(
+        constructErrorCodes.invalidInput,
+        "Collector environment credential references must name one environment variable",
+      );
+    }
   }
   const credentialKeys = credentialRefs.map(
     (reference) => `${reference.provider}\u0000${reference.reference}`,
@@ -213,6 +219,16 @@ export function createOtelCollectorSpec(
       "Collector credential references must be unique",
     );
   }
+  validateCollectorSecretReferences(
+    input.config,
+    new Set(
+      credentialRefs
+        .filter((reference) => reference.provider === "environment")
+        .map((reference) => reference.reference),
+    ),
+  );
+  const config = requireObject(normalizeJson(input.config), "Collector config");
+  validateCollectorConfig(config, input.signals);
   const body = {
     formatVersion: "meridian-otel-collector.v1" as const,
     mode: input.mode,
@@ -335,6 +351,44 @@ function validateCollectorConfig(
       constructErrorCodes.invalidInput,
       `Collector config is missing ${missingSignals.join(", ")} pipelines`,
     );
+  }
+}
+
+/** Validate references without resolving secrets or relaxing other config guards. */
+function validateCollectorSecretReferences(
+  value: unknown,
+  environment: ReadonlySet<string>,
+  path = "Collector config",
+): void {
+  if (Array.isArray(value)) {
+    value.forEach((item, index) =>
+      validateCollectorSecretReferences(item, environment, `${path}[${index}]`),
+    );
+    return;
+  }
+  if (value !== null && typeof value === "object") {
+    for (const [key, item] of Object.entries(value)) {
+      // The existing V1 credentialRefs shape declares the environment authority.
+      // Only a complete password substitution is an exception to the key guard.
+      if (key === "password" && typeof item === "string") {
+        const match = /^\$\{env:([A-Za-z_][A-Za-z0-9_]*)\}$/.exec(item);
+        if (match !== null && environment.has(match[1]!)) {
+          continue;
+        }
+      }
+      rejectSecretMaterial({ [key]: null }, path);
+      validateCollectorSecretReferences(item, environment, `${path}.${key}`);
+    }
+    return;
+  }
+  if (typeof value === "string" && value.includes("${")) {
+    const match = /^\$\{env:([A-Za-z_][A-Za-z0-9_]*)\}$/.exec(value);
+    if (match === null || !environment.has(match[1]!)) {
+      throw new MeridianConstructError(
+        constructErrorCodes.secretMaterial,
+        `${path} must use one declared environment reference without a default or interpolation`,
+      );
+    }
   }
 }
 
