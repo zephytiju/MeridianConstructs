@@ -1,0 +1,685 @@
+{
+  "mode": "gateway",
+  "image": "ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib@sha256:f2f01157055a9b2aab9df7118e1f1c9abf345e99b23bc7a2bc791db374a7d0f6",
+  "database": "native_gateway",
+  "bindingId": "telemetry",
+  "layouts": {
+    "log": {
+      "resource": {
+        "catalog": "evidence",
+        "namespace": "telemetry",
+        "name": "gateway_log"
+      },
+      "table": "telemetry_gateway_log_56d07bb68e58",
+      "recordProfile": "log",
+      "schemaVersion": "1.0.0",
+      "resourceFingerprint": "sha256:0a7938a9f0564e7cc8f9ccae8971ce777d78c6acb5e4fd0e3b21ef15e3cb63ef",
+      "schemaFingerprint": "sha256:cc02eef24a116d1b911afaa4d3a6632a91d9b31b19088a2797c224f69b888a9c",
+      "columns": [
+        {
+          "logicalName": "attributes",
+          "physicalName": "attributes_f1b4db36f908",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "body",
+          "physicalName": "body_230d8358dc8e",
+          "logicalType": "json",
+          "clickhouseType": "Nullable(String)",
+          "nullable": true,
+          "many": false
+        },
+        {
+          "logicalName": "eventTime",
+          "physicalName": "eventtime_78a30c064d53",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "evidenceId",
+          "physicalName": "evidenceid_8b4352028e8e",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "extensions",
+          "physicalName": "extensions_20ef7739e842",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "flags",
+          "physicalName": "flags_2934fb49d6b3",
+          "logicalType": "int64",
+          "clickhouseType": "Int64",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "formatVersion",
+          "physicalName": "formatversion_53680da36cf7",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "ingestionIdentity",
+          "physicalName": "ingestionidentity_821c51bd38cf",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "instrumentationScope",
+          "physicalName": "instrumentationscope_1bdad2d3c956",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "kind",
+          "physicalName": "kind_0b27c158feb3",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "observedTime",
+          "physicalName": "observedtime_dff1886191eb",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "otelResource",
+          "physicalName": "otelresource_8fdb8432cc21",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "profile",
+          "physicalName": "profile_1900eab6c028",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "provenance",
+          "physicalName": "provenance_96d815328a42",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "scope",
+          "physicalName": "scope_5f161c914988",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "severity",
+          "physicalName": "severity_c98f54e5559a",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "sourceProtocolVersion",
+          "physicalName": "sourceprotocolversion_bf4d201d4e3c",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "spanId",
+          "physicalName": "spanid_6379c1ca1f18",
+          "logicalType": "string",
+          "clickhouseType": "Nullable(String)",
+          "nullable": true,
+          "many": false
+        },
+        {
+          "logicalName": "tenant",
+          "physicalName": "tenant_e9da86d351cf",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "traceId",
+          "physicalName": "traceid_3cd81d346c57",
+          "logicalType": "string",
+          "clickhouseType": "Nullable(String)",
+          "nullable": true,
+          "many": false
+        }
+      ],
+      "timestampField": "observedTime",
+      "identityFields": ["evidenceId"],
+      "dimensionFields": [],
+      "measurementFields": [],
+      "retentionSeconds": null,
+      "partitionInterval": "month",
+      "topology": "clickhouse-standalone",
+      "queryFinal": true,
+      "administrativeProfiles": [],
+      "indexes": {},
+      "layoutFingerprint": "sha256:be0bf54a8c7ecb9dd148ca59829aa84384851212ccf236546d8f0dd3851670cd"
+    },
+    "span": {
+      "resource": {
+        "catalog": "evidence",
+        "namespace": "telemetry",
+        "name": "gateway_span"
+      },
+      "table": "telemetry_gateway_span_ffda8a358494",
+      "recordProfile": "span",
+      "schemaVersion": "1.0.0",
+      "resourceFingerprint": "sha256:c90b185913c015b4e845106b3ecfe664eff185b9ab98f129882be1fa96fbe2ab",
+      "schemaFingerprint": "sha256:5c6adc56fb52fd97a6f33130e7e337f136157c06abcc4998c624ba6927cf2ad1",
+      "columns": [
+        {
+          "logicalName": "attributes",
+          "physicalName": "attributes_f1b4db36f908",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "endTime",
+          "physicalName": "endtime_ec244b269e2c",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "eventTime",
+          "physicalName": "eventtime_78a30c064d53",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "events",
+          "physicalName": "events_862417b9e7c3",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "evidenceId",
+          "physicalName": "evidenceid_8b4352028e8e",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "extensions",
+          "physicalName": "extensions_20ef7739e842",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "formatVersion",
+          "physicalName": "formatversion_53680da36cf7",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "ingestionIdentity",
+          "physicalName": "ingestionidentity_821c51bd38cf",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "instrumentationScope",
+          "physicalName": "instrumentationscope_1bdad2d3c956",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "kind",
+          "physicalName": "kind_0b27c158feb3",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "links",
+          "physicalName": "links_eef8b9fd5d43",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "name",
+          "physicalName": "name_82a3537ff0db",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "observedTime",
+          "physicalName": "observedtime_dff1886191eb",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "otelResource",
+          "physicalName": "otelresource_8fdb8432cc21",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "parentSpanId",
+          "physicalName": "parentspanid_2f3125f90f64",
+          "logicalType": "string",
+          "clickhouseType": "Nullable(String)",
+          "nullable": true,
+          "many": false
+        },
+        {
+          "logicalName": "profile",
+          "physicalName": "profile_1900eab6c028",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "provenance",
+          "physicalName": "provenance_96d815328a42",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "scope",
+          "physicalName": "scope_5f161c914988",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "sourceProtocolVersion",
+          "physicalName": "sourceprotocolversion_bf4d201d4e3c",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "spanId",
+          "physicalName": "spanid_6379c1ca1f18",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "spanKind",
+          "physicalName": "spankind_f3398b8529bb",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "startTime",
+          "physicalName": "starttime_b5667446235d",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "status",
+          "physicalName": "status_073c1634c496",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "tenant",
+          "physicalName": "tenant_e9da86d351cf",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "traceId",
+          "physicalName": "traceid_3cd81d346c57",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        }
+      ],
+      "timestampField": "observedTime",
+      "identityFields": ["evidenceId"],
+      "dimensionFields": [],
+      "measurementFields": [],
+      "retentionSeconds": null,
+      "partitionInterval": "month",
+      "topology": "clickhouse-standalone",
+      "queryFinal": true,
+      "administrativeProfiles": [],
+      "indexes": {},
+      "layoutFingerprint": "sha256:150aa737316dedeb530c63ab06134dc3c3080ab2e82cf0f8c758e94cf89f6e99"
+    },
+    "metric": {
+      "resource": {
+        "catalog": "evidence",
+        "namespace": "telemetry",
+        "name": "gateway_metric"
+      },
+      "table": "telemetry_gateway_metric_530154a3ab67",
+      "recordProfile": "metric",
+      "schemaVersion": "1.0.0",
+      "resourceFingerprint": "sha256:43d9d1bc14f45f317ad56c05d302d68405331b09a8adf174f198a8783bce1706",
+      "schemaFingerprint": "sha256:b77d3e6c27de2a9a4a76703d4751f3599e8f63a1d8ea7097a6966d67766f3558",
+      "columns": [
+        {
+          "logicalName": "attributes",
+          "physicalName": "attributes_f1b4db36f908",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "dimensions",
+          "physicalName": "dimensions_70b27deb2ba8",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "endTime",
+          "physicalName": "endtime_ec244b269e2c",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "eventTime",
+          "physicalName": "eventtime_78a30c064d53",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "evidenceId",
+          "physicalName": "evidenceid_8b4352028e8e",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "exemplars",
+          "physicalName": "exemplars_2d9a2132862d",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "extensions",
+          "physicalName": "extensions_20ef7739e842",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "flags",
+          "physicalName": "flags_2934fb49d6b3",
+          "logicalType": "int64",
+          "clickhouseType": "Int64",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "formatVersion",
+          "physicalName": "formatversion_53680da36cf7",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "ingestionIdentity",
+          "physicalName": "ingestionidentity_821c51bd38cf",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "instrumentationScope",
+          "physicalName": "instrumentationscope_1bdad2d3c956",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "kind",
+          "physicalName": "kind_0b27c158feb3",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "metricType",
+          "physicalName": "metrictype_557aa5ac8776",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "monotonic",
+          "physicalName": "monotonic_f458f8295a83",
+          "logicalType": "boolean",
+          "clickhouseType": "Bool",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "name",
+          "physicalName": "name_82a3537ff0db",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "observedTime",
+          "physicalName": "observedtime_dff1886191eb",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "otelResource",
+          "physicalName": "otelresource_8fdb8432cc21",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "profile",
+          "physicalName": "profile_1900eab6c028",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "provenance",
+          "physicalName": "provenance_96d815328a42",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "scope",
+          "physicalName": "scope_5f161c914988",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "sourceProtocolVersion",
+          "physicalName": "sourceprotocolversion_bf4d201d4e3c",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "startTime",
+          "physicalName": "starttime_b5667446235d",
+          "logicalType": "utcTimestamp",
+          "clickhouseType": "DateTime64(9, 'UTC')",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "temporality",
+          "physicalName": "temporality_bf5c70d9d736",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "tenant",
+          "physicalName": "tenant_e9da86d351cf",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "unit",
+          "physicalName": "unit_385cfdbc00ec",
+          "logicalType": "string",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        },
+        {
+          "logicalName": "value",
+          "physicalName": "value_cd42404d52ad",
+          "logicalType": "json",
+          "clickhouseType": "String",
+          "nullable": false,
+          "many": false
+        }
+      ],
+      "timestampField": "observedTime",
+      "identityFields": ["evidenceId"],
+      "dimensionFields": [],
+      "measurementFields": [],
+      "retentionSeconds": null,
+      "partitionInterval": "month",
+      "topology": "clickhouse-standalone",
+      "queryFinal": true,
+      "administrativeProfiles": [],
+      "indexes": {},
+      "layoutFingerprint": "sha256:a875a8b2ea545e58f49f5c9905ebef7286dd3d6b1f5571c7964f4ca532cab65f"
+    }
+  },
+  "tenant": "tenant-a",
+  "scope": {
+    "service": "collector-feasibility"
+  },
+  "ingestionIdentity": "collector:gateway",
+  "receiverTls": {
+    "mode": "mutual",
+    "serverName": "localhost",
+    "caRef": {
+      "provider": "test",
+      "reference": "ca"
+    },
+    "clientCertificateRef": {
+      "provider": "test",
+      "reference": "client"
+    }
+  },
+  "tlsFiles": {
+    "certificate": "/tls/cert.pem",
+    "key": "/tls/key.pem",
+    "clientCa": "/tls/cert.pem",
+    "receiverCa": "/tls/cert.pem",
+    "backendCa": "/tls/cert.pem"
+  },
+  "backendEndpoint": "https://backend:8443",
+  "backendIdentityEnvironment": "CLICKHOUSE_USER",
+  "backendCredentialEnvironment": "CLICKHOUSE_PASSWORD",
+  "relayCredentialEnvironment": "COLLECTOR_RELAY",
+  "queueDirectory": "/queue",
+  "queueRequests": 2,
+  "maxEnvelopeBytes": 32768,
+  "maxBatchBytes": 1048576,
+  "maxBatchRows": 100,
+  "insertQuorum": 1
+}

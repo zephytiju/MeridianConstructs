@@ -13,6 +13,14 @@ canonical `meridian-config.v1` document plus logical Platform capability outputs
 The package does not import any Adapter—including Kafka—and never creates providers, discovers
 ambient credentials, reads another stack, or assumes Platform/Vangu state and lifecycle authority.
 
+Collector exporter passwords may use a complete `${env:VARIABLE_NAME}` substitution when
+`credentialRefs` declares `{ provider: "environment", reference: "VARIABLE_NAME" }`.
+The caller delivers that environment variable to the Collector; Constructs preserves the opaque
+substitution and never reads its value. Literal passwords, undeclared references, fallback values,
+and concatenated substitutions fail validation. Other secret-bearing keys retain their existing
+rejection rules. Use [`createClickHouseTelemetryPlan`](docs/collector-clickhouse.md) to render the
+authenticated stock ingestion chain and explicit migrations for registered Meridian Resources.
+
 ```bash
 npm install @zephytiju/meridian-storage-constructs @pulumi/pulumi
 ```
@@ -138,3 +146,5 @@ Deployment release selection and the exhaustive gate inventory are documented in
 Version 1.5.0 aligns Operation planning with released Adapter capabilities.
 See [selected manifests and migration](docs/operation-capabilities.md) for explicit
 manifest inputs, corrected PostgreSQL baselines and the complete family inventory.
+
+See [authenticated Collector telemetry](docs/collector-clickhouse.md) for the stock Collector-to-ClickHouse plan, caller-owned migration, public Resources, and durable acceptance contract.

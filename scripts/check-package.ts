@@ -21,10 +21,10 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
 };
 if (
   packageJson.name !== "@zephytiju/meridian-storage-constructs" ||
-  packageJson.version !== "1.5.1"
+  packageJson.version !== "1.6.0"
 ) {
   throw new Error(
-    "The repository must publish only @zephytiju/meridian-storage-constructs@1.5.1",
+    "The repository must publish only @zephytiju/meridian-storage-constructs@1.6.0",
   );
 }
 if (packageJson.workspaces !== undefined) {
@@ -61,6 +61,8 @@ for (const required of [
   "contracts/meridian-config.v1.schema.json",
   "contracts/meridian-adapter-capabilities.v1.schema.json",
   "docs/operation-capabilities.md",
+  "docs/collector-clickhouse.md",
+  "dist/constructs/otel/exporters/clickhouse/index.js",
   "dist/index.d.ts",
   "dist/index.js",
   "docs/projection-jobs.md",

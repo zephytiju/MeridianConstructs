@@ -2,6 +2,13 @@
 
 # Changelog
 
+## 1.6.0
+
+- Render authenticated stock Collector telemetry plans and explicit public ClickHouse layout migrations for log, span and metric Resources.
+- Preserve typed OTLP data, exact integers, nanoseconds and canonical retry identity through public Meridian reads; validate before durable acknowledgement.
+- Accept complete declared environment references in Collector password fields while retaining secret interpolation restrictions.
+- Add installed-package, real-plugin sidecar/gateway integration and fault conformance.
+
 ## 1.5.1
 
 - Compare deployment-selected ClickHouse limits even when a Binding omits the new

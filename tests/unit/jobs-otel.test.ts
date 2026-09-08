@@ -142,6 +142,120 @@ describe("OpenTelemetry Collector contract", () => {
     },
   } as const;
 
+  function authenticatedCollector(
+    password: unknown,
+    credentialRefs = [
+      { provider: "environment", reference: "CLICKHOUSE_PASSWORD" },
+    ],
+    extras = {},
+  ) {
+    return createOtelCollectorSpec({
+      mode: "gateway",
+      image: digestImage,
+      config: {
+        ...collectorConfig,
+        exporters: {
+          clickhouse: {
+            endpoint: "https://clickhouse.example:8443",
+            password: password as string,
+            ...extras,
+          },
+        },
+      },
+      credentialRefs,
+      protocol: "grpc",
+      signals: ["traces", "metrics", "logs"],
+      tls: {
+        mode: "disabled",
+        serverName: null,
+        caRef: null,
+        clientCertificateRef: null,
+      },
+      batchingSamplingFingerprint: fingerprintA,
+      backendReadPlacement: {
+        catalog: "evidence",
+        namespace: "telemetry",
+        name: "signals",
+      },
+    });
+  }
+
+  it("preserves declared opaque environment passwords without reading the environment", () => {
+    const value = "${env:CLICKHOUSE_PASSWORD}";
+    const first = authenticatedCollector(value);
+    expect(first.config.exporters).toEqual({
+      clickhouse: {
+        endpoint: "https://clickhouse.example:8443",
+        password: value,
+      },
+    });
+    expect(first.credentialRefs).toEqual([
+      { provider: "environment", reference: "CLICKHOUSE_PASSWORD" },
+    ]);
+    expect(authenticatedCollector(value)).toEqual(first);
+    expect(
+      authenticatedCollector("${env:OTHER_PASSWORD}", [
+        { provider: "environment", reference: "OTHER_PASSWORD" },
+      ]).specFingerprint,
+    ).not.toEqual(first.specFingerprint);
+  });
+
+  it.each([
+    "literal-secret",
+    "",
+    "${env:CLICKHOUSE_PASSWORD:-fallback}",
+    "prefix-${env:CLICKHOUSE_PASSWORD}",
+    "${env:CLICKHOUSE_PASSWORD}${env:CLICKHOUSE_PASSWORD}",
+    "$${env:CLICKHOUSE_PASSWORD}",
+    "${CLICKHOUSE_PASSWORD}",
+    "${file:/secret/password}",
+    "${env:UNDECLARED}",
+    { reference: "CLICKHOUSE_PASSWORD" },
+    ["${env:CLICKHOUSE_PASSWORD}"],
+    null,
+  ])(
+    "rejects literal, compound, defaulted and unresolved passwords (%j)",
+    (value) => {
+      expect(() => authenticatedCollector(value)).toThrow(
+        /inline secret material/,
+      );
+    },
+  );
+
+  it("requires the exact environment authority and retains other secret checks", () => {
+    const value = "${env:CLICKHOUSE_PASSWORD}";
+    expect(() => authenticatedCollector(value, [])).toThrow(/inline secret/);
+    expect(() =>
+      authenticatedCollector(value, [
+        { provider: "secret-manager", reference: "CLICKHOUSE_PASSWORD" },
+      ]),
+    ).toThrow(/inline secret/);
+    expect(() =>
+      authenticatedCollector(value, [
+        { provider: "environment", reference: "CLICKHOUSE_PASSWORD" },
+        { provider: "environment", reference: "CLICKHOUSE_PASSWORD" },
+      ]),
+    ).toThrow(/must be unique/);
+    expect(() =>
+      authenticatedCollector(value, [
+        { provider: "environment", reference: "invalid/name" },
+      ]),
+    ).toThrow(/one environment variable/);
+    expect(() =>
+      authenticatedCollector(value, undefined, { access_key: value }),
+    ).toThrow(/inline secret/);
+    expect(() =>
+      authenticatedCollector(value, undefined, {
+        endpoint: "${env:UNDECLARED}",
+      }),
+    ).toThrow(/declared environment reference/);
+    expect(() =>
+      authenticatedCollector(value, undefined, {
+        nested: [{ password: "inline-secret" }],
+      }),
+    ).toThrow(/inline secret/);
+  });
+
   it("creates sidecar and gateway capabilities without credential bytes", () => {
     const sidecar = createOtelCollectorSpec({
       mode: "sidecar",
