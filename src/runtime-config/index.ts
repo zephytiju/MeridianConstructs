@@ -13,6 +13,7 @@ import {
   assertFingerprint,
   assertIdentifier,
   catalogNames,
+  resourceDefinitionFingerprint,
   resourceSelectorKey,
   validateBindingMetadata,
   validateClientPolicy,
@@ -26,6 +27,7 @@ import {
   type DeploymentSpecV1,
   type MeridianResourceRequirementV1,
   type PlacementRuleV1,
+  type ResourceSelectorV1,
 } from "../contracts/index.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
 import {
@@ -42,6 +44,7 @@ export const profileEnvironmentVariable = "MERIDIAN_PROFILE" as const;
 export interface ResourceBindingCapabilityV1 {
   readonly resourceRef: string;
   readonly capabilityKey: string;
+  /** Historical name for the ResourceDefinition pin (or aggregate of legacy pins). */
   readonly schemaFingerprint: string;
   readonly configFingerprint: string;
 }
@@ -86,6 +89,21 @@ export function validateRuntimeConfig(
       constructErrorCodes.invalidInput,
       `Runtime configuration is invalid: ${formatSchemaErrors(validateSchema.errors ?? [])}`,
     );
+  }
+  // The public Core parser also rejects duplicate Catalog providers and Resource
+  // pins whose Catalog is not configured; JSON Schema alone cannot express these.
+  const config = value as JsonObject & {
+    catalogs: { providers: { name: CatalogName }[] };
+    resources: { pins: { ref: ResourceSelectorV1 }[] };
+  };
+  const catalogs = uniqueBy(
+    config.catalogs.providers,
+    (item) => item.name,
+    constructErrorCodes.invalidInput,
+  );
+  const installed = new Set(catalogs.map((item) => item.name));
+  for (const pin of config.resources.pins) {
+    requireConfiguredCatalog(pin.ref, installed);
   }
 }
 
@@ -134,16 +152,10 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
     (item) => item.name,
     constructErrorCodes.invalidInput,
   );
-  const configuredCatalogs = catalogs.map((item) => item.name).sort();
-  if (
-    configuredCatalogs.length !== catalogNames.length ||
-    configuredCatalogs.some(
-      (item, index) => item !== [...catalogNames].sort()[index],
-    )
-  ) {
+  if (catalogs.some((item) => !catalogNames.includes(item.name))) {
     throw new MeridianConstructError(
       constructErrorCodes.invalidInput,
-      `Catalog registry must be exactly ${catalogNames.join(", ")}`,
+      `Catalog providers must use registered names: ${catalogNames.join(", ")}`,
     );
   }
   for (const catalog of catalogs) {
@@ -174,7 +186,9 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
     constructErrorCodes.duplicateResource,
   );
   resources.forEach(validateResourceRequirement);
+  const installedCatalogs = new Set(catalogs.map((item) => item.name));
   for (const resource of resources) {
+    requireConfiguredCatalog(resource.selector, installedCatalogs);
     for (const schema of resource.schemas) {
       const provider = schemasById.get(schema.providerId);
       if (provider === undefined) {
@@ -183,10 +197,10 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
           `${resourceSelectorKey(resource.selector)} references an unknown schema provider`,
         );
       }
-      if (provider.requiredFingerprint !== schema.fingerprint) {
+      if (provider.package !== schema.package) {
         throw new MeridianConstructError(
           constructErrorCodes.invalidReference,
-          `${resourceSelectorKey(resource.selector)} schema fingerprint differs from its provider`,
+          `${resourceSelectorKey(resource.selector)} schema package differs from its provider`,
         );
       }
     }
@@ -291,7 +305,7 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
           resource.schemas.map((schema) => ({
             ref: resource.selector,
             providerId: schema.providerId,
-            requiredFingerprint: schema.fingerprint,
+            requiredFingerprint: resourceDefinitionFingerprint(schema),
           })),
         )
         .sort((a, b) => {
@@ -349,8 +363,10 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
     const key = resourceSelectorKey(resource.selector);
     const schemaFingerprint =
       resource.schemas.length === 1
-        ? resource.schemas[0]!.fingerprint
-        : fingerprint(resource.schemas.map((item) => item.fingerprint).sort());
+        ? resourceDefinitionFingerprint(resource.schemas[0]!)
+        : fingerprint(
+            resource.schemas.map(resourceDefinitionFingerprint).sort(),
+          );
     resourceBindings[key] = Object.freeze({
       resourceRef: key,
       capabilityKey: `juntai.platform.meridian.resource.${resource.selector.catalog}.${resource.selector.namespace}.${resource.selector.name}@1.0.0`,
@@ -369,6 +385,18 @@ export function planDeployment(spec: DeploymentSpecV1): DeploymentPlanV1 {
     ),
     placementBindings: Object.freeze(placementBindings),
   });
+}
+
+function requireConfiguredCatalog(
+  resource: ResourceSelectorV1,
+  installed: ReadonlySet<CatalogName>,
+): void {
+  if (!installed.has(resource.catalog)) {
+    throw new MeridianConstructError(
+      constructErrorCodes.invalidReference,
+      `${resourceSelectorKey(resource)} belongs to an unconfigured Catalog`,
+    );
+  }
 }
 
 export function resolvePlacementBindings(

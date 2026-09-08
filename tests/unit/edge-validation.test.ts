@@ -351,13 +351,16 @@ describe("deployment planner failure closure", () => {
             {
               ...ordersRequirement,
               schemas: [
-                { ...ordersRequirement.schemas[0]!, fingerprint: fingerprintC },
+                {
+                  ...ordersRequirement.schemas[0]!,
+                  package: "wrong-provider-package",
+                },
               ],
             },
           ],
         }),
       ),
-    ).toThrow(/differs from its provider/);
+    ).toThrow(/schema package differs from its provider/);
   });
 
   it("validates placement and live-schema references", () => {
