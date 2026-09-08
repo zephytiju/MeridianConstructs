@@ -6,6 +6,7 @@ import type {
   DeploymentMode,
   Topology,
 } from "../contracts/index.js";
+import { assertBoundedText } from "../contracts/index.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
 
 export interface OperationCapabilityV1 {
@@ -23,6 +24,7 @@ export interface EngineProfileV1 {
   readonly adapterVersion: string;
   readonly adapterContract: string;
   readonly engineProfile: string;
+  /** Historical tested releases; never an acceptance allowlist. Legacy S3/OCI values are protocols. */
   readonly supportedEngineVersions: readonly string[];
   readonly defaultEngineVersion: string;
   readonly catalogs: readonly CatalogName[];
@@ -38,6 +40,7 @@ export interface EngineProfileV1 {
   readonly profileFingerprint: string;
 }
 
+/** Historical reproducible recipe; callers supply their own exact deployment locks. */
 export const packagePins: Readonly<Record<string, string>> = Object.freeze({
   "meridian-plugin-observability": "1.0.0",
   "meridian-storage-clickhouse": "1.0.0",
@@ -431,11 +434,6 @@ interface ProfileInput {
 }
 
 function createProfile(input: ProfileInput): EngineProfileV1 {
-  if (!input.supportedEngineVersions.includes(input.defaultEngineVersion)) {
-    throw new Error(
-      `Profile ${input.id} has an unsupported default Engine version`,
-    );
-  }
   Object.freeze(valkeyOperations);
   if (!input.allowedTopologies.includes(input.defaultTopology)) {
     throw new Error(`Profile ${input.id} has an unsupported default topology`);
@@ -748,23 +746,23 @@ export function defaultEngineProfiles(
   return Object.freeze(selected);
 }
 
-export interface CompatibilityContractV1 {
-  readonly formatVersion: "meridian-storage-constructs-compatibility.v1";
+export interface CompatibilityContractV2 {
+  readonly formatVersion: "meridian-storage-constructs-compatibility.v2";
   readonly distribution: "@zephytiju/meridian-storage-constructs";
   readonly node: ">=22";
   readonly designRevisions: Readonly<Record<string, number>>;
   readonly catalogRegistry: readonly CatalogName[];
   readonly consumerRestrictions: Readonly<Record<string, boolean>>;
-  readonly packages: Readonly<Record<string, string>>;
+  readonly examplePackages: Readonly<Record<string, string>>;
   readonly adapterPackages: Readonly<Record<string, string>>;
   readonly profiles: Readonly<
     Record<string, Readonly<Record<string, string | readonly string[]>>>
   >;
 }
 
-export function compatibilityContract(): CompatibilityContractV1 {
+export function compatibilityContract(): CompatibilityContractV2 {
   return Object.freeze({
-    formatVersion: "meridian-storage-constructs-compatibility.v1",
+    formatVersion: "meridian-storage-constructs-compatibility.v2",
     distribution: "@zephytiju/meridian-storage-constructs",
     node: ">=22",
     designRevisions: Object.freeze({
@@ -772,7 +770,7 @@ export function compatibilityContract(): CompatibilityContractV1 {
       engineAdapters: 24,
       hld: 62,
       kafkaAdapter: 6,
-      meridianConstructs: 63,
+      meridianConstructs: 112,
     }),
     catalogRegistry: [
       "structured",
@@ -787,7 +785,7 @@ export function compatibilityContract(): CompatibilityContractV1 {
       kafkaImports: false,
       nativeQueryV1: false,
     }),
-    packages: packagePins,
+    examplePackages: packagePins,
     adapterPackages,
     profiles: Object.freeze(
       Object.fromEntries(
@@ -799,7 +797,12 @@ export function compatibilityContract(): CompatibilityContractV1 {
             adapterVersion: profile.adapterVersion,
             adapterContract: profile.adapterContract,
             engineProfile: profile.engineProfile,
-            engineVersions: profile.supportedEngineVersions,
+            testedEngineVersions: profile.supportedEngineVersions,
+            engineVersionMeaning: ["s3", "oci-distribution"].includes(
+              profile.adapterId,
+            )
+              ? "protocol"
+              : "selected-release",
             defaultEngineVersion: profile.defaultEngineVersion,
             managedStorage: profile.managedStorage,
             minimumTlsMode: profile.minimumTlsMode,
@@ -819,4 +822,86 @@ export function compatibilityContract(): CompatibilityContractV1 {
 
 export function compatibilityFingerprint(): string {
   return fingerprint(compatibilityContract());
+}
+
+/** Reject malformed selections and real legacy protocol constraints, not untested releases. */
+export function validateEngineVersion(
+  profile: EngineProfileV1,
+  selected: string,
+): void {
+  assertBoundedText(selected, "Engine version", 256);
+  if (!/^[A-Za-z0-9][A-Za-z0-9._+!-]*$/.test(selected)) {
+    throw new MeridianConstructError(
+      constructErrorCodes.versionNotPinned,
+      "Engine version must be an exact deployment selection",
+    );
+  }
+  const protocol =
+    profile.adapterId === "s3"
+      ? "2006-03-01"
+      : profile.adapterId === "oci-distribution"
+        ? "1.1.1"
+        : undefined;
+  if (protocol !== undefined && selected !== protocol) {
+    throw new MeridianConstructError(
+      constructErrorCodes.incompatibleOperation,
+      `Profile ${profile.id} requires protocol ${protocol}; record server release separately`,
+    );
+  }
+}
+
+/** Coordinates are deployment integrity inputs, independent of example recipes. */
+export function validatePackagePins(
+  pins: Readonly<Record<string, string>>,
+  required: readonly string[] = [],
+): void {
+  if (pins === null || typeof pins !== "object" || Array.isArray(pins)) {
+    throw new MeridianConstructError(
+      constructErrorCodes.versionNotPinned,
+      "Exact deployment package pins are required",
+    );
+  }
+  for (const name of required) {
+    if (!Object.hasOwn(pins, name))
+      throw new MeridianConstructError(
+        constructErrorCodes.versionNotPinned,
+        `Missing deployment package pin ${name}`,
+      );
+  }
+  const normalized = new Set<string>();
+  for (const [name, selected] of Object.entries(pins)) {
+    const key = name.toLowerCase().replace(/[-_.]+/g, "-");
+    if (
+      !/^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?$/.test(name) ||
+      name.length > 256 ||
+      normalized.has(key)
+    ) {
+      throw new MeridianConstructError(
+        constructErrorCodes.versionNotPinned,
+        "Malformed or duplicate deployment package name",
+      );
+    }
+    normalized.add(key);
+    if (
+      typeof selected !== "string" ||
+      selected.length > 256 ||
+      !/^(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*(?:(?:a|b|rc)[0-9]+)?(?:\.post[0-9]+)?(?:\.dev[0-9]+)?(?:\+[a-z0-9]+(?:[._-][a-z0-9]+)*)?$/i.test(
+        selected,
+      )
+    ) {
+      throw new MeridianConstructError(
+        constructErrorCodes.versionNotPinned,
+        `Invalid exact deployment package pin ${name}`,
+      );
+    }
+  }
+}
+
+/** Historical persisted document; never reinterpret V1 bytes as V2. */
+export interface CompatibilityContractV1 extends Omit<
+  CompatibilityContractV2,
+  "formatVersion" | "examplePackages"
+> {
+  readonly formatVersion: "meridian-storage-constructs-compatibility.v1";
+  readonly packages: Readonly<Record<string, string>>;
 }

@@ -255,7 +255,7 @@ describe("released Engine profiles", () => {
       nativeQueryV1: false,
     });
     expect(JSON.stringify(contract)).not.toContain('"python"');
-    expect(contract.designRevisions.meridianConstructs).toBe(63);
+    expect(contract.designRevisions.meridianConstructs).toBe(112);
     expect(contract.profiles.opensearch?.operationFingerprints).toHaveLength(1);
     expect(fingerprintB).toMatch(/^sha256:/);
   });

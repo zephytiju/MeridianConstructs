@@ -4,3 +4,4 @@ dist
 node_modules
 package-lock.json
 .venv
+tests/fixtures/core-1.1.0/release-provenance.v1.json

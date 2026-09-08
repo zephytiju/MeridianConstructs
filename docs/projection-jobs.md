@@ -34,9 +34,10 @@ Use `projectionPackagePins` for the exact public integration:
 | meridian-storage-semantics  | 2.0.0   |
 | meridian-storage-query      | 1.0.2   |
 | meridian-storage-projection | 1.0.2   |
-| meridian-storage-postgresql | 2.1.0   |
+| meridian-storage-postgresql | 2.1.1   |
 
-These are **deployment package pins**. Core's Binding `compatibilityPins` are runtime
+This is a **reproducible example**, not an allowed-release set. Callers supply exact
+**deployment package pins**; every supplied coordinate is serialized and hash-covered. Core's Binding `compatibilityPins` are runtime
 contract/manifest pins and must not be populated with Python distribution versions.
 The older general Engine profiles in this package retain their existing compatibility
 baseline. The dedicated projection template consumes the supplied released descriptors.
@@ -65,9 +66,9 @@ retain a separate Binding; the asynchronous target remains outside the source gr
 
 Preview validates placement and pinned manifests. Before the host constructor returns
 or creates its OutboxPort, it repeats the checks against the started runtime's registry
-and authenticated capabilities. This host is coupled to the exact Core runtime pins
-above, including its existing registry/manifest inspection path. No Core config or
-adapter interface changes are needed.
+and authenticated capabilities. The host checks its required public APIs and started-runtime capabilities.
+Its installed distributions must match the deployment-selected lock, independent of
+the historical recipe above. No Core config or adapter interface changes are needed.
 
 Nonempty declarations produce worker contract `1.1.0`, sorted canonical
 `requiredEvidence` references, the complete job Resource set and validated package
@@ -165,7 +166,8 @@ they do not claim a production cluster rollout.
 
 `projectionHostFiles()` returns `worker.py`, `supervisor.py`, `versioned_target.py` and
 `requirements.txt`. Copy them into the owning image beside its application entrypoint,
-install the exact public requirements, and pin the resulting image digest. These files
+resolve and hash-lock the selected public requirements, and pin the resulting image digest.
+The bundled requirements are an example that the image owner may replace. These files
 are deployment templates in the npm distribution, with no additional Python distribution
 or provider SPI. The host selects the supported `PostgreSQLOutbox(runtime, resource=...,
 spec=..., context=...)` injection path. Business code supplies a pure projector and
@@ -242,10 +244,11 @@ or workspace package imports are used.
 npm ci --ignore-scripts
 npm run check
 npm pack --ignore-scripts --pack-destination /tmp
-npm install --ignore-scripts --prefix /tmp/projection-consumer /tmp/zephytiju-meridian-storage-constructs-1.2.0.tgz
+npm install --ignore-scripts --prefix /tmp/projection-consumer /tmp/zephytiju-meridian-storage-constructs-1.3.0.tgz
 npm install --ignore-scripts --prefix /tmp/projection-legacy @zephytiju/meridian-storage-constructs@1.1.0
 python3.12 -m venv /tmp/projection-runtime
-/tmp/projection-runtime/bin/pip install -r src/jobs/projection/assets/requirements.txt pytest==8.4.2
+/tmp/projection-runtime/bin/pip install -r tests/integration/jobs/requirements-repaired.txt pytest==8.4.2
+/tmp/projection-runtime/bin/pip check
 export CONSTRUCTS_MODULE=/tmp/projection-consumer/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
 export LEGACY_CONSTRUCTS_MODULE=/tmp/projection-legacy/node_modules/@zephytiju/meridian-storage-constructs/dist/index.js
 # Supply a disposable local PostgreSQL/PostGIS DSN through the test environment.
@@ -258,3 +261,20 @@ actual restart after claim, target commit and before checkpoint; source-result m
 rollback without intent; exact old-version replay; latest/tombstone reads; bounded
 admitted-batch drain; a separate failed drain, hard termination and expired-claim recovery;
 retry/quarantine persistence; and invalid placement/capability rejection before claims.
+
+## Release-independent selection in Constructs 1.3.0
+
+Required package identities, exact coordinates and worker-spec `1.0.0`/`1.1.0`
+remain enforced. Package release equality with `projectionPackagePins` is no
+longer checked. Extra deployment packages (including optional Evidence) are
+preserved and verified against the installed distribution. Missing APIs such as
+`run_until_stopped` or durable claim/complete/release methods fail before claims;
+required Operations, atomic guarantees, Schema and placement checks remain.
+
+The CI matrix independently varies PostgreSQL 16/17 and public PostgreSQL Adapter
+2.1.0/2.1.1 for historical regression and 2.2.0 with Core 1.1.0, Projection 1.0.3
+and Evidence 1.0.2 for final acceptance, using normal public dependency resolution.
+The selected requirements are explicit; installed versions must match them. It records installed
+package versions, pip archive hashes, selected image digests, authenticated server
+versions and JUnit results. Any skipped required case fails evidence collection.
+Other combinations remain unverified. See [release validation](release-validation.md).

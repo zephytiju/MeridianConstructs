@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
+import inspect
 import signal
 from dataclasses import asdict
 from importlib.metadata import version
@@ -24,12 +26,12 @@ from meridian_storage.runtime.config import RuntimeConfig
 from meridian_storage.spi.adapters import AdapterCreateContext
 from meridian_storage.spi.capabilities import capability_violations
 
-EXPECTED_PACKAGES = {
-    "meridian-storage-core": "1.0.1",
-    "meridian-storage-semantics": "2.0.0",
-    "meridian-storage-query": "1.0.2",
-    "meridian-storage-projection": "1.0.2",
-    "meridian-storage-postgresql": "2.1.0",
+REQUIRED_PACKAGES = {
+    "meridian-storage-core",
+    "meridian-storage-semantics",
+    "meridian-storage-query",
+    "meridian-storage-projection",
+    "meridian-storage-postgresql",
 }
 
 
@@ -134,16 +136,68 @@ def validate_job(job):
     expected_resources = [op[k] for k in ("source", "outbox", "target")] + required
     if sorted(resources) != sorted(expected_resources) or len(set(resources)) != len(resources):
         raise ValueError("job Resources do not match the declared participants")
-    packages = dict(EXPECTED_PACKAGES)
-    evidence_package = "meridian-storage-evidence"
-    if required or evidence_package in op["packages"]:
-        packages[evidence_package] = "1.0.1"
-    if op["packages"] != packages:
-        raise ValueError("unsupported released projection package set")
+    packages = op["packages"]
+    required_packages = REQUIRED_PACKAGES | ({"meridian-storage-evidence"} if required else set())
+    if not isinstance(packages, dict) or not required_packages.issubset(packages):
+        raise ValueError("missing deployment package pins")
+    normalized = set()
     for name, expected in packages.items():
+        key = re.sub(r"[-_.]+", "-", name.lower())
+        if (
+            len(name) > 256
+            or not re.fullmatch(r"[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?", name)
+            or key in normalized
+        ):
+            raise ValueError("malformed or duplicate deployment package name")
+        normalized.add(key)
+        if (
+            not isinstance(expected, str)
+            or len(expected) > 256
+            or not re.fullmatch(
+                r"(?:[0-9]+!)?[0-9]+(?:\.[0-9]+)*(?:(?:a|b|rc)[0-9]+)?"
+                r"(?:\.post[0-9]+)?(?:\.dev[0-9]+)?(?:\+[a-z0-9]+(?:[._-][a-z0-9]+)*)?",
+                expected,
+                re.I,
+            )
+        ):
+            raise ValueError("invalid exact deployment package pin")
         if version(name) != expected:
-            raise ValueError("installed projection package mismatch")
+            raise ValueError(f"installed package differs from deployment lock: {name}")
+    for binding in config["bindings"]:
+        lock = binding.get("extensions", {}).get("org.meridian.constructs/package-lock.v1")
+        if lock is not None and (
+            not isinstance(lock, dict)
+            or lock.get("formatVersion") != "meridian-deployment-package-lock.v1"
+            or not isinstance(lock.get("packages"), dict)
+            or any(packages.get(name) != selected for name, selected in lock["packages"].items())
+        ):
+            raise ValueError("projection package lock differs from deployment Binding")
     return op, config
+
+
+def validate_host_apis():
+    """Fail with a feature reason before readiness/claims, independently of release numbers."""
+    for owner, method, parameters in (
+        (Meridian, "transaction", ()),
+        (Meridian, "start", ()),
+        (Meridian, "execute", ("expression",)),
+        (ProjectionRunner, "run_until_stopped", ("poll_interval_seconds",)),
+        (
+            PostgreSQLOutbox,
+            "atomic_claim",
+            (
+                "owner",
+                "limit",
+                "lease_duration",
+            ),
+        ),
+        (PostgreSQLOutbox, "complete", ()),
+        (PostgreSQLOutbox, "release", ()),
+        (PostgreSQLOutbox, "lag", ()),
+    ):
+        api = getattr(owner, method, None)
+        if not callable(api) or not set(parameters).issubset(inspect.signature(api).parameters):
+            raise ValueError(f"missing required host API: {owner.__name__}.{method}")
 
 
 class ProjectionWorker:
@@ -219,6 +273,7 @@ class ProjectionWorker:
                 }.items()
             ):
                 raise ValueError("version-addressed target Schema required")
+            validate_host_apis()
             binding = next(b for b in self.config.bindings if b.id == selected["source"].binding_id)
             self.runtime = PostgreSQLAdapterFactory().create(
                 AdapterCreateContext(

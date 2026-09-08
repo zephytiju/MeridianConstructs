@@ -28,7 +28,12 @@ import {
   type PlacementRuleV1,
 } from "../contracts/index.js";
 import { MeridianConstructError, constructErrorCodes } from "../errors.js";
-import { getEngineProfile, type EngineProfileV1 } from "../profiles/index.js";
+import {
+  getEngineProfile,
+  validateEngineVersion,
+  validatePackagePins,
+  type EngineProfileV1,
+} from "../profiles/index.js";
 
 export const configFormatVersion = "meridian-config.v1" as const;
 export const configEnvironmentVariable = "MERIDIAN_CONFIG" as const;
@@ -456,6 +461,17 @@ function validateBinding(binding: BindingSpecV1): EngineProfileV1 {
   validateEngineConnection(binding.connection);
   validateClientPolicy(binding.client);
   validateBindingMetadata(binding);
+  if (
+    Object.hasOwn(
+      binding.connection.extensions,
+      "org.meridian.constructs/package-lock.v1",
+    )
+  ) {
+    throw new MeridianConstructError(
+      constructErrorCodes.invalidInput,
+      "Binding extensions cannot override the deployment package lock",
+    );
+  }
   const profile = getEngineProfile(binding.profileId);
   if (
     profile.minimumTlsMode === "server" &&
@@ -466,12 +482,7 @@ function validateBinding(binding: BindingSpecV1): EngineProfileV1 {
       `Profile ${profile.id} requires authenticated TLS`,
     );
   }
-  if (!profile.supportedEngineVersions.includes(binding.engineVersion)) {
-    throw new MeridianConstructError(
-      constructErrorCodes.versionNotPinned,
-      `Binding ${binding.id} selects unsupported Engine version ${binding.engineVersion}`,
-    );
-  }
+  validateEngineVersion(profile, binding.engineVersion);
   if (!profile.allowedModes.includes(binding.mode)) {
     throw new MeridianConstructError(
       constructErrorCodes.invalidInput,
@@ -484,18 +495,15 @@ function validateBinding(binding: BindingSpecV1): EngineProfileV1 {
       `Binding ${binding.id} selects unsupported topology ${binding.topology}`,
     );
   }
-  for (const [packageName, observed] of Object.entries(
+  validatePackagePins(
     binding.compatibilityPins,
+    Object.keys(profile.compatibilityPins),
+  );
+  for (const [name, expected] of Object.entries(
+    binding.runtimeCompatibilityPins ?? {},
   )) {
-    assertBoundedText(packageName, "compatibility package", 256);
-    assertBoundedText(observed, `compatibility pin ${packageName}`, 512);
-    const expected = profile.compatibilityPins[packageName];
-    if (expected !== undefined && observed !== expected) {
-      throw new MeridianConstructError(
-        constructErrorCodes.versionNotPinned,
-        `Binding ${binding.id} must pin ${packageName}=${expected}`,
-      );
-    }
+    assertBoundedText(name, "runtime compatibility key", 256);
+    assertBoundedText(expected, "runtime compatibility expectation", 512);
   }
   return profile;
 }
@@ -589,14 +597,17 @@ function renderBinding(
   binding: BindingSpecV1,
   profile: EngineProfileV1,
 ): Record<string, unknown> {
-  const compatibilityPins = Object.fromEntries(
+  const selectedPackages = Object.fromEntries(
     Object.entries({
-      ...profile.compatibilityPins,
       ...binding.compatibilityPins,
     }).sort(([a], [b]) => a.localeCompare(b)),
   );
   const extensions: Record<string, unknown> = {
     ...binding.connection.extensions,
+    "org.meridian.constructs/package-lock.v1": {
+      formatVersion: "meridian-deployment-package-lock.v1",
+      packages: selectedPackages,
+    },
     "org.meridian.constructs/aclRef": binding.acl,
     "org.meridian.constructs/deploymentMode": binding.mode,
     "org.meridian.constructs/migration": binding.migration,
@@ -621,7 +632,7 @@ function renderBinding(
     client: binding.client,
     requiredCapabilityFingerprint: binding.requiredCapabilityFingerprint,
     requiredPhysicalFingerprint: binding.connection.requiredPhysicalFingerprint,
-    compatibilityPins,
+    compatibilityPins: { ...(binding.runtimeCompatibilityPins ?? {}) },
     settings: binding.connection.settings,
     extensions,
   };

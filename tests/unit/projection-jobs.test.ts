@@ -14,6 +14,7 @@ import {
 import {
   deploymentSpec,
   ordersRequirement,
+  externalBinding,
   digestImage,
   fingerprintA,
 } from "../fixtures.js";
@@ -61,6 +62,7 @@ function input(): DurableProjectionJobInputV1 {
   const outbox = { ...source, name: "outbox" };
   const target = { ...source, name: "target" };
   const deployment = deploymentSpec({
+    bindings: [externalBinding({ compatibilityPins: projectionPackagePins })],
     resources: [source, outbox, target].map((selector) => ({
       ...ordersRequirement,
       selector,
@@ -147,6 +149,58 @@ function withEvidence(): DurableProjectionJobInputV1 {
 }
 
 describe("required atomic Evidence composition", () => {
+  it.each(["1.0.0", "2.1.1", "99.12.4"])(
+    "serializes an independently selected %s release without claiming conformance",
+    (selected) => {
+      const args = withEvidence();
+      const packages = {
+        ...args.packages,
+        "meridian-storage-postgresql": selected,
+        "example-schema": "7.3.2",
+      };
+      const binding = (args.runtimeConfig.bindings as JsonObject[])[0]!;
+      (binding.extensions as Record<string, JsonObject>)[
+        "org.meridian.constructs/package-lock.v1"
+      ] = {
+        formatVersion: "meridian-deployment-package-lock.v1",
+        packages: {
+          ...projectionPackagePins,
+          "meridian-storage-postgresql": selected,
+        },
+      };
+      const job = durableProjectionJob({ ...args, packages });
+      expect(job.operation.packages).toEqual(packages);
+      expect(
+        durableProjectionJob({
+          ...args,
+          packages: Object.fromEntries(Object.entries(packages).reverse()),
+        }),
+      ).toEqual(job);
+      expect(job.operation.configFingerprint).toBe(
+        fingerprint(args.runtimeConfig),
+      );
+      expect(
+        durableProjectionJob({
+          ...args,
+          packages: { ...packages, "example-schema": "7.3.3" },
+        }).specFingerprint,
+      ).not.toBe(job.specFingerprint);
+    },
+  );
+  it("rejects a changed deployment lock rather than classifying the release as unsupported", () => {
+    const args = input();
+    expect(() =>
+      durableProjectionJob({
+        ...args,
+        packages: { ...args.packages, "meridian-storage-postgresql": "2.1.1" },
+      }),
+    ).toThrow(/package lock differs/);
+    const binding = (args.runtimeConfig.bindings as JsonObject[])[0]!;
+    (binding.extensions as Record<string, JsonObject>)[
+      "org.meridian.constructs/package-lock.v1"
+    ] = { formatVersion: "unknown", packages: {} };
+    expect(() => durableProjectionJob(args)).toThrow(/package lock differs/);
+  });
   it.each([null, {}, "evidence:orders.audit"])(
     "rejects a non-array declaration %s",
     (value) => {
@@ -177,9 +231,9 @@ describe("required atomic Evidence composition", () => {
     expect(() =>
       durableProjectionJob({
         ...args,
-        packages: { ...args.packages, "meridian-storage-evidence": "0.0.0" },
+        packages: { ...args.packages, "meridian-storage-evidence": ">=1" },
       }),
-    ).toThrow(/Evidence package/);
+    ).toThrow(/exact deployment package pin/);
   });
 
   it("fingerprints sorted canonical participants and the complete package set", () => {
@@ -263,7 +317,7 @@ describe("required atomic Evidence composition", () => {
     if (fault === "missing-package")
       delete packages["meridian-storage-evidence"];
     if (fault === "wrong-package")
-      packages["meridian-storage-evidence"] = "0.0.0";
+      packages["meridian-storage-evidence"] = ">=1";
     const reduced = structuredClone(manifest) as unknown as FixtureManifest;
     const contract =
       fault === "missing-transaction-atomic"
@@ -370,7 +424,7 @@ describe("durable projection deployment", () => {
     "missing-placement",
     "unknown-binding",
     "cross-binding",
-    "old-package",
+    "malformed-package",
     "wrong-adapter",
     "missing-physical",
     "wrong-manifest",
@@ -404,9 +458,9 @@ describe("durable projection deployment", () => {
         }),
       );
     }
-    if (fault === "old-package")
+    if (fault === "malformed-package")
       (args.packages as Record<string, string>)["meridian-storage-postgresql"] =
-        "1.0.0";
+        ">=1.0.0";
     if (fault === "wrong-adapter") binding.adapterId = "opensearch";
     if (fault === "missing-physical")
       binding.requiredPhysicalFingerprint = null;

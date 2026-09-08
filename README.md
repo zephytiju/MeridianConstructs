@@ -63,8 +63,8 @@ void engine;
 See [`examples/external.ts`](examples/external.ts) for a complete external-Engine deployment.
 
 For the released durable PostgreSQL projection profile, see
-[`docs/projection-jobs.md`](docs/projection-jobs.md). Version 1.2.0 adds required
-atomic Evidence declarations, compatible package pins and host startup validation.
+[`docs/projection-jobs.md`](docs/projection-jobs.md). Version 1.3.0 separates deployment-selected releases from required contracts.
+It retains required atomic Evidence declarations and host startup validation.
 Version 1.1.0 added validated
 worker jobs and caller-owned host templates with bounded drain/termination and
 version-addressed target/read wiring, while preserving the existing rebuild helper.
@@ -73,9 +73,9 @@ version-addressed target/read wiring, while preserving the existing rebuild help
 
 - Exact Catalog registry: `structured`, `object`, `cache`, `evidence`, `streaming`.
 - Released profiles for PostgreSQL, OpenSearch, ClickHouse, Valkey, S3, OCI Distribution, and
-  Kafka/Streaming, with exact compatibility pins and operation descriptor fingerprints.
+  Kafka/Streaming, with deployment-owned package locks and operation descriptor fingerprints.
 - One-primary defaults, opt-in multi-engine profiles, and exact-one Resource placement.
-- Operation, guarantee, limit, topology, version, and physical-fingerprint validation.
+- Operation, guarantee, limit, topology, exact-coordinate and physical-fingerprint validation.
 - Opaque identity/secret references, authenticated TLS, and recursive inline-secret rejection.
 - Canonical runtime configuration, SHA-256 fingerprints, logical Resource capability outputs, and
   deterministic plan diffs.
@@ -125,3 +125,6 @@ canonical repository is `zephytiju/MeridianConstructs`; the npm distribution is
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+
+Deployment release selection and the exhaustive gate inventory are documented in
+[release validation](docs/release-validation.md). Untested combinations remain unverified.

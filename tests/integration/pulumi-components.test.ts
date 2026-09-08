@@ -4,6 +4,8 @@ import * as pulumi from "@pulumi/pulumi";
 import { beforeAll, describe, expect, it } from "vitest";
 import {
   ExternalEngine,
+  getEngineProfile,
+  engineProfiles,
   ManagedEngine,
   MeridianDeployment,
   MeridianLifecycleJob,
@@ -26,6 +28,7 @@ import {
 } from "../fixtures.js";
 
 const resources: pulumi.runtime.MockResourceArgs[] = [];
+const explicitProviders = new Set<string>();
 
 beforeAll(async () => {
   await pulumi.runtime.setMocks(
@@ -45,6 +48,7 @@ beforeAll(async () => {
 class TestProvider extends pulumi.ProviderResource {
   public constructor(name: string) {
     super("test-provider", name, {});
+    explicitProviders.add(name);
   }
 }
 
@@ -52,6 +56,7 @@ function bindingArgs(profileId: string) {
   return {
     bindingId: "orders-db",
     profileId,
+    compatibilityPins: getEngineProfile(profileId).compatibilityPins,
     requiredCapabilityFingerprint: fingerprintA,
     acl: { provider: "policy-registry", reference: "orders-acl" },
     migration: {
@@ -86,6 +91,68 @@ function connectionInputs() {
     settings: { connectTimeoutSeconds: 10 },
   };
 }
+
+describe("all exported Engine selections through Pulumi components", () => {
+  for (const profile of Object.values(engineProfiles)) {
+    for (const mode of profile.allowedModes) {
+      for (const topology of profile.allowedTopologies) {
+        it(`${profile.id}/${mode}/${topology} preserves caller release selection`, async () => {
+          const name = `${profile.id}-${mode}-${topology}`;
+          const selected = ["s3", "oci-distribution"].includes(
+            profile.adapterId,
+          )
+            ? profile.defaultEngineVersion
+            : "99.12.4";
+          const binding = {
+            ...bindingArgs(profile.id),
+            topology,
+            engineVersion: selected,
+            compatibilityPins: Object.fromEntries(
+              Object.keys(profile.compatibilityPins).map((key) => [
+                key,
+                "9.8.7",
+              ]),
+            ),
+          };
+          const provisioned: string[] = [];
+          const engine =
+            mode === "external"
+              ? new ExternalEngine(name, {
+                  binding,
+                  connection: connectionInputs(),
+                })
+              : new ManagedEngine(name, {
+                  binding,
+                  provider: new TestProvider(`${name}-provider`),
+                  provisioner: {
+                    provision(_name, _profile, request) {
+                      provisioned.push(request.engineVersion);
+                      return connectionInputs();
+                    },
+                  },
+                  request: {
+                    target: "isolated-conformance",
+                    storage: { bytes: 1024 },
+                    networkPolicy: {},
+                    workloadIdentity: connectionInputs().identityRef,
+                    tls: {
+                      ...connectionInputs().tls,
+                      clientCertificateRef: null,
+                    },
+                    acl: binding.acl,
+                    observability: binding.observability,
+                  },
+                });
+          expect(await resolveOutput(engine.engineVersion)).toBe(selected);
+          expect(
+            (await resolveOutput(engine.binding)).compatibilityPins,
+          ).toEqual(binding.compatibilityPins);
+          expect(provisioned).toEqual(mode === "managed" ? [selected] : []);
+        });
+      }
+    }
+  }
+});
 
 describe("Pulumi component integration", () => {
   it("renders an external Engine into typed runtime and logical capability outputs", async () => {
@@ -284,11 +351,7 @@ describe("Pulumi component integration", () => {
       resources.some(
         (resource) =>
           resource.type.startsWith("pulumi:providers:") &&
-          ![
-            "managed-provider",
-            "workload-provider",
-            "validation-provider",
-          ].includes(resource.name),
+          !explicitProviders.has(resource.name),
       ),
     ).toBe(false);
   });
@@ -382,11 +445,11 @@ describe("Pulumi component integration", () => {
         new ExternalEngine("unsupported-engine-version", {
           binding: {
             ...bindingArgs("postgresql-postgis-local-single-primary"),
-            engineVersion: "0",
+            engineVersion: ">=17",
           },
           connection: connectionInputs(),
         }),
-    ).toThrow(/does not support Engine/);
+    ).toThrow(/exact deployment selection/);
 
     const validationProvider = new TestProvider("validation-provider");
     expect(
