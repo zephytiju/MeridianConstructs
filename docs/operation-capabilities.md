@@ -82,3 +82,35 @@ PostgreSQL 16/17 metadata tests. The public PostgreSQL 2.3.1 closure adds real
 required-Evidence commit/rollback and all packed-host lifecycle regressions on
 both versions. Other families are contract inventory and parsing evidence here;
 their real Engine conformance belongs to the downstream all-family closure.
+
+## Configured limits in 1.5.1
+
+Constructs 1.5.0's optional manifest path handles selected limits, but the legacy
+input path still compared default limits when `connection.settings` selected a
+smaller bound. The expanded independent audit found 96 ClickHouse false accepts
+(one above four configured limits across six Operations and four profile/mode
+combinations). The published 1.5.0 artifact remains immutable.
+
+Version 1.5.1 reads the released configuration-to-capability mappings for ClickHouse
+batch rows/bytes, time range and retry window; OpenSearch `limits`; Valkey `limits`
+and maximum TTL; S3 object/range bytes; and OCI part/object/range bytes, list page
+size and multipart part count. It validates the known setting bounds and compares
+requirements with the selected values, including valid increases over historical
+profile defaults. When a complete manifest is supplied, the effective limit cannot
+exceed either the configured value or the advertised limit; missing advertised
+limits stay missing. Settings, package locks, manifest and physical fingerprint
+pins are serialized unchanged. PostgreSQL and Kafka Operation limits are fixed in
+the inspected public descriptors. This does not add an Engine probe or interpret
+unrelated provider settings. Conditional features still require explicit selected
+manifest evidence.
+
+Resource and Operation minimum limits are both enforced. If both scopes specify
+the same key, a lower minimum in one scope cannot weaken the other requirement.
+
+Public-artifact parity tests vary every configurable limit represented above and
+check at-limit acceptance and one-above rejection, with and without a supplied
+manifest. They classify this as configuration/contract metadata, not Engine
+behavior. The separate independent expanded audit covers 2,454 cases and 978
+negative controls; its published 1.4.0 results identified 72 PostgreSQL rejections
+and 96 ClickHouse false accepts. Both groups must be zero on the final public
+release before this task is complete.

@@ -21,10 +21,10 @@ const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
 };
 if (
   packageJson.name !== "@zephytiju/meridian-storage-constructs" ||
-  packageJson.version !== "1.5.0"
+  packageJson.version !== "1.5.1"
 ) {
   throw new Error(
-    "The repository must publish only @zephytiju/meridian-storage-constructs@1.5.0",
+    "The repository must publish only @zephytiju/meridian-storage-constructs@1.5.1",
   );
 }
 if (packageJson.workspaces !== undefined) {
