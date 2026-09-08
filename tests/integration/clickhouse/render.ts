@@ -7,24 +7,41 @@ if (!target?.includes("node_modules/"))
 const {
   createClickHouseTelemetryPlan,
   telemetryFields,
+  planDeployment,
+  getEngineProfile,
+  disabledTelemetryCapability,
+  defaultClientPolicy,
+  defaultValidationPolicy,
+  engineProfiles,
 }: typeof import("../../../src/index.js") = await import(
   pathToFileURL(resolve(target)).href
 );
 let source = "";
 for await (const chunk of process.stdin) source += String(chunk);
 const input = JSON.parse(source) as {
-  command?: "fields";
+  command?: "fields" | "defaults" | "deployment";
   input: import("../../../src/index.js").ClickHouseTelemetryInput;
+  spec: import("../../../src/index.js").DeploymentSpecV1;
 };
 process.stdout.write(
   JSON.stringify(
-    input.command === "fields"
-      ? Object.fromEntries(
-          (["log", "span", "metric"] as const).map((p) => [
-            p,
-            telemetryFields(p),
-          ]),
-        )
-      : createClickHouseTelemetryPlan(input.input),
+    input.command === "defaults"
+      ? {
+          profile: getEngineProfile("clickhouse-standalone"),
+          telemetry: disabledTelemetryCapability,
+          client: defaultClientPolicy,
+          validation: defaultValidationPolicy,
+          profiles: engineProfiles,
+        }
+      : input.command === "deployment"
+        ? planDeployment(input.spec)
+        : input.command === "fields"
+          ? Object.fromEntries(
+              (["log", "span", "metric"] as const).map((p) => [
+                p,
+                telemetryFields(p),
+              ]),
+            )
+          : createClickHouseTelemetryPlan(input.input),
   ),
 );

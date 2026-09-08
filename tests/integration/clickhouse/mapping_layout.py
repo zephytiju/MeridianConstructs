@@ -128,8 +128,10 @@ def build(mode):
         "maxBatchRows": 100,
         "insertQuorum": 1,
     }
-    plan = render({"command": "plan", "input": inputs})
     (ROOT / (mode + "-input.json")).write_text(json.dumps(inputs, indent=2) + "\n")
+    plan = render({"command": "plan", "input": inputs})
+    assert plan["layouts"] == inputs["layouts"]
+    assert all(c.layout.append_only for c in compiled)
     (ROOT / (mode + "-plan.json")).write_text(json.dumps(plan, indent=2) + "\n")
     return compiled, bundle, plan
 
@@ -314,6 +316,14 @@ def apply(client, mode, state, port, ca):
             "retry": {"maxAttempts": 1, "baseDelayMs": 1, "maxDelayMs": 1, "jitterRatio": 0},
         },
     }
+    from deployment import generated_config
+
+    config = generated_config(
+        mode,
+        config,
+        capability_manifest(settings, binding.engine_version),
+        plan["migration"]["fingerprint"],
+    )
     (ROOT / (mode + "-runtime-config.json")).write_text(json.dumps(config, indent=2) + "\n")
     runtime = Meridian(
         RuntimeConfig.from_mapping(config), schema_providers=[Provider()], secret_resolver=Secrets()

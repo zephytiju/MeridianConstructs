@@ -112,3 +112,7 @@ cluster-harness, provider, Operation/guarantee, auth/TLS, Schema, placement and
 integrity negative controls. Other Engine families' real-engine acceptance belongs
 to the separate all-family closure task; neither these metadata tests nor this
 release report claim those unexecuted combinations are verified.
+
+## ClickHouse append-only compatibility
+
+The Collector gate selects public ClickHouse 1.1.3 and tests both append-only and legacy layout documents, including exact field types and complete fingerprints. The public metadata matrix compares standalone/replicated and managed/external planning with and without a manifest, configured limits, legacy/mixed layouts, malformed selections and atomic negatives. Real stock gateway/sidecar acceptance uses generated Core configuration for direct Evidence append/query, preserves distinct content under one identity/time after fresh-runtime retries and backend restart, and proves an old sorting key cannot be relabeled by migration. Existing typed OTLP, nanoseconds, public canonical identities, pre-ACK failures and acknowledged SIGKILL recovery remain required. Metadata comparisons do not claim replicated backend execution.

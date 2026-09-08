@@ -77,6 +77,32 @@ a caller-delivered identity and password. Each deployment route represents one a
 tenant/scope; do not share that identity across tenants. Reserved source attribute keys cannot
 replace the deployment scope.
 
+## Public append-only layouts
+
+ClickHouse 1.1.3 emits `appendOnly: true` for newly compiled Evidence layouts. The renderer
+accepts that exact public variant and returns the complete validated documents in `plan.layouts`,
+including their unchanged layout fingerprints. A legacy document omits `appendOnly`; explicitly
+setting it to false, null, a number or a string is invalid. Unknown fields and tampered content
+remain rejected. Existing legacy Collector and migration output retains its identity.
+
+The append-only public sorting key adds the canonical row fingerprint after scope, timestamp
+and Evidence identity. Exact canonical retries may coalesce; different content under the same
+identity and time remains distinct. This does not imply WORM, atomic transactions or exactly-once
+delivery. Distinct occurrences with identical content require distinct identity or time.
+
+The caller must explicitly compile, provision or migrate, select and lock the new layout,
+capability, physical verification and generated runtime configuration. Retaining an old table
+with `CREATE TABLE IF NOT EXISTS` cannot change its sorting key: public migration rejects that
+transition before relabeling metadata. A changed Collector migration fingerprint does not
+upgrade a backend table. Drain old queues and keep the old lock until its deployment migration
+is complete. Never strip the new field, reuse an old fingerprint or disable physical checks.
+
+When `capabilityManifest` is omitted, planning derives `append-only` only if the complete,
+fingerprint-validated selection has at least one Evidence layout and every Evidence layout
+uses the new variant. Legacy or mixed Evidence layouts do not receive that guarantee. Explicit
+manifests may narrow guarantees and limits; configuration cannot add a missing explicit
+guarantee or broaden a selected bound. Atomic Evidence remains unsupported.
+
 ## Stock components and data fidelity
 
 The OTLP receiver forwards full OTLP JSON to a private `webhook_event` receiver. Validation

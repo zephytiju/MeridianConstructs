@@ -2,6 +2,13 @@
 
 # Changelog
 
+## 1.6.1
+
+- Accept the public ClickHouse append-only Evidence layout with exact boolean and complete-content fingerprint validation; retain legacy layout semantics.
+- Derive optional-manifest append-only capabilities from validated selected layouts while retaining legacy, mixed-layout, atomic and limit negatives.
+- Return complete validated layouts and preserve canonical Collector normalization and caller-owned physical migration.
+- Verify public ClickHouse 1.1.3, generated Core append/query, distinct-content preservation, fresh-runtime retries and old sorting-key migration rejection in both stock modes.
+
 ## 1.6.0
 
 - Render authenticated stock Collector telemetry plans and explicit public ClickHouse layout migrations for log, span and metric Resources.
