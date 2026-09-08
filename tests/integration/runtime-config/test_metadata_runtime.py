@@ -257,7 +257,12 @@ def test_inner_schema_document_cannot_replace_the_physical_wrapper_pin(deployed)
     try:
         with pytest.raises(MeridianError) as error:
             runtime.start()
-        assert error.value.code == ErrorCode.PHYSICAL_FINGERPRINT
+        # Core 1.1 wraps the Adapter's RuntimeError while retaining its cause.
+        assert error.value.code == ErrorCode.RUNTIME_STARTUP
+        assert isinstance(error.value.__cause__, RuntimeError)
+        assert str(error.value.__cause__) == (
+            f"physical metadata mismatch for {RESOURCE.ref.canonical}: Schema fingerprint"
+        )
     finally:
         runtime.close()
 
