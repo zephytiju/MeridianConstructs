@@ -148,3 +148,22 @@ See [selected manifests and migration](docs/operation-capabilities.md) for expli
 manifest inputs, corrected PostgreSQL baselines and the complete family inventory.
 
 See [authenticated Collector telemetry](docs/collector-clickhouse.md) for the stock Collector-to-ClickHouse plan, caller-owned migration, public Resources, and durable acceptance contract.
+
+## Local development (Jumbo)
+
+This repository is jumbo-managed (Jumbo Build & Versioning Standard, section 3.5):
+resolution, builds, and releases run through jumbo, never ad-hoc npm installs.
+
+```sh
+jumbo lock   # resolve internal @juntai packages from the JumboIndex, third-party from npm
+jumbo build  # build + tests at the resolved closure
+```
+
+The internal dependencies (the internal platform packages) are declared major-only and resolved
+from the JumboIndex — they are never fetched from the npm registry. No lock
+file is committed; the index record is the lock (Jumbo §2.4). Consumers
+likewise resolve this package (`@zephytiju/meridian-storage-constructs`) major-only from the JumboIndex. CI
+verify resolves the same way via
+`zephytiju/JumboBuild/.github/actions/jumbo-resolve` before `npm ci`;
+releases are dispatch-only through `.github/workflows/jumbo-publish.yml`
+and are published to the JumboIndex only, never to a public registry.
